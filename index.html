@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raincheck</title>
+<meta name="description" content="When will it rain? Precipitation forecast for the next two hours, in 15-minute steps.">
+<meta name="theme-color" content="#EEF2F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C141B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <button id="placeBtn" class="place" type="button" aria-label="Change location">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></svg>
+      <span id="placeName">Choose a location</span>
+    </button>
+    <button id="unitBtn" class="chip" type="button" aria-label="Switch temperature units">°F</button>
+  </header>
+
+  <main>
+    <section class="hero" aria-live="polite">
+      <p id="headline" class="headline">Checking the sky…</p>
+      <p id="subline" class="subline">&nbsp;</p>
+    </section>
+
+    <section class="card nowcast" aria-labelledby="ncTitle">
+      <div class="card-head">
+        <h2 id="ncTitle">Next 2 hours</h2>
+        <span class="meta" id="updated"></span>
+      </div>
+      <div id="chart" class="chart" role="img" aria-label="Precipitation intensity for the next two hours"></div>
+    </section>
+
+    <section class="now" aria-label="Current conditions">
+      <div class="stat"><span class="k">Now</span><span class="v" id="nowTemp">–</span><span class="d" id="nowDesc">&nbsp;</span></div>
+      <div class="stat"><span class="k">Feels like</span><span class="v" id="feels">–</span></div>
+      <div class="stat"><span class="k">Wind</span><span class="v" id="wind">–</span></div>
+      <div class="stat"><span class="k">Humidity</span><span class="v" id="humid">–</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="hrTitle">
+      <div class="card-head"><h2 id="hrTitle">Next 12 hours</h2><span class="meta">chance of precipitation</span></div>
+      <div class="hours-wrap"><ol id="hours" class="hours"></ol></div>
+    </section>
+
+    <p class="foot">Forecast data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. The 2-hour outlook comes in 15-minute steps. Over the US and central Europe those steps come from high-resolution models; elsewhere they are estimated from hourly data.</p>
+  </main>
+</div>
+
+<dialog id="sheet" class="sheet" aria-labelledby="sheetTitle">
+  <form method="dialog" class="sheet-inner" id="searchForm">
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Location</h2>
+      <button class="x" value="close" aria-label="Close" type="submit">×</button>
+    </div>
+    <button type="button" id="geoBtn" class="primary">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Use my location
+    </button>
+    <p id="geoMsg" class="geo-msg" hidden></p>
+    <label for="q" class="lbl">Or search for a city</label>
+    <input id="q" type="search" placeholder="e.g. Seattle" autocomplete="off" enterkeyhint="search">
+    <ul id="results" class="results"></ul>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

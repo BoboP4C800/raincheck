@@ -1,0 +1,14 @@
+{
+  "name": "Raincheck",
+  "short_name": "Raincheck",
+  "description": "When will it rain? Precipitation for the next two hours.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C141B",
+  "theme_color": "#0C141B",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
