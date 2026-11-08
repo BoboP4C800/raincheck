@@ -101,6 +101,14 @@ main { display: grid; gap: 16px; }
 .hour .p { font: 400 11px var(--font-data); color: var(--muted); }
 .hour.wet .p { color: var(--rain); font-weight: 500; }
 
+.quip { margin: 12px 0 0; font-size: 15px; font-style: italic; color: var(--ink); opacity: .85; text-wrap: pretty; }
+
+.where dl { margin: 0; display: grid; gap: 10px; }
+.where dl > div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.where dt { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.where dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.where .note { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+
 .foot { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
 
 /* Location sheet */

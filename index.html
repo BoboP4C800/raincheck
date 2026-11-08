@@ -29,6 +29,7 @@
     <section class="hero" aria-live="polite">
       <p id="headline" class="headline">Checking the sky…</p>
       <p id="subline" class="subline">&nbsp;</p>
+      <p id="quip" class="quip" hidden></p>
     </section>
 
     <section class="card nowcast" aria-labelledby="ncTitle">
@@ -51,7 +52,18 @@
       <div class="hours-wrap"><ol id="hours" class="hours"></ol></div>
     </section>
 
-    <p class="foot">Forecast data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. The 2-hour outlook comes in 15-minute steps. Over the US and central Europe those steps come from high-resolution models; elsewhere they are estimated from hourly data.</p>
+    <section class="card where" aria-labelledby="whereTitle" id="where" hidden>
+      <div class="card-head"><h2 id="whereTitle">Forecast location</h2></div>
+      <dl>
+        <div><dt>Address</dt><dd id="whereAddr">–</dd></div>
+        <div><dt>Your position</dt><dd id="whereHow">–</dd></div>
+        <div><dt>Forecast point</dt><dd id="whereGrid">–</dd></div>
+        <div><dt>Elevation</dt><dd id="whereElev">–</dd></div>
+      </dl>
+      <p class="note">Weather models calculate forecasts at points on a grid a few kilometers apart. Raincheck uses the grid point nearest your position, so the forecast describes the few square kilometers around that point rather than your exact spot.</p>
+    </section>
+
+    <p class="foot">Address lookup by <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Forecast data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. The 2-hour outlook comes in 15-minute steps. Over the US and central Europe those steps come from high-resolution models; elsewhere they are estimated from hourly data.</p>
   </main>
 </div>
 

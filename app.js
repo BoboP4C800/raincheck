@@ -99,8 +99,8 @@ function summarize(data, nc, nowSec) {
   if (wetNow) {
     const end = curve.findIndex((r) => r < WET);
     const word = intensityWord(peakOf(0, end > 0 ? end : WINDOW));
-    if (end > 0) return { head: `${word} ${kind} stopping in about ${minutesText(end)}.`, sub: `Then dry for a while.` };
-    return { head: `${word} ${kind} for the next two hours.`, sub: `No break expected before ${clock(nowSec + WINDOW * 60, data.timezone)}.` };
+    if (end > 0) return { head: `${word} ${kind} stopping in about ${minutesText(end)}.`, sub: `Then dry for a while.`, mood: snow ? "snow" : "stopping" };
+    return { head: `${word} ${kind} for the next two hours.`, sub: `No break expected before ${clock(nowSec + WINDOW * 60, data.timezone)}.`, mood: snow ? "snow" : "continuing" };
   }
 
   const start = curve.findIndex((r) => r >= WET);
@@ -111,6 +111,7 @@ function summarize(data, nc, nowSec) {
     return {
       head: `${word} ${kind} starting in about ${minutesText(start)}.`,
       sub: end < 0 ? `Likely to continue past ${clock(nowSec + WINDOW * 60, data.timezone)}.` : `Lasting about ${minutesText(end - start)}.`,
+      mood: snow ? "snow" : "start" + word,
     };
   }
 
@@ -118,10 +119,50 @@ function summarize(data, nc, nowSec) {
   for (let i = 0; i < h.time.length; i++) {
     if (h.time[i] <= nowSec + WINDOW * 60) continue;
     if ((h.precipitation_probability[i] || 0) >= 40) {
-      return { head: "No rain for the next two hours.", sub: `${h.precipitation_probability[i]}% chance around ${clock(h.time[i], data.timezone)}.` };
+      return { head: "No rain for the next two hours.", sub: `${h.precipitation_probability[i]}% chance around ${clock(h.time[i], data.timezone)}.`, mood: "dryLater" };
     }
   }
-  return { head: "No rain for the next two hours.", sub: "The next 12 hours look dry too." };
+  return { head: "No rain for the next two hours.", sub: "The next 12 hours look dry too.", mood: "dry" };
+}
+
+/* ---------- a little personality (humor: 5/10) ---------- */
+const QUIPS = {
+  dry: ["Umbrella status: decorative.", "The sky has nothing to say. Enjoy the quiet.", "Dry as a weather app's sense of humor."],
+  dryClear: ["Clear skies. Even the clouds took the day off.", "Sunglasses optional, smugness encouraged."],
+  dryCloudy: ["Gray, but holding it together.", "The clouds are all talk and no drizzle.", "Overcast, not overdramatic."],
+  dryLater: ["Dry for now. Keep an umbrella within negotiating distance.", "Enjoy the break. The clouds are scheduling a meeting.", "Good window for errands. It won't stay open forever."],
+  startLight: ["Just enough to ruin a good hair day.", "Light stuff. A hood will handle it.", "Drizzle incoming: technically weather, mildly inconvenient."],
+  startModerate: ["Real rain. The umbrella finally earns its keep.", "Now's a good time to bring the laundry in.", "Prime hours for a warm drink and a window seat."],
+  startHeavy: ["Not a hood situation. A roof situation.", "Puddles will be deeper than they look.", "If you were going to run that errand, now's the time."],
+  stopping: ["Hang in there. The sky is wrapping up.", "Leaving soon, like a guest who finally found their keys.", "Almost over. Your patience has been noted."],
+  continuing: ["It's settled in. Make tea.", "The rain has cleared its schedule for you.", "Indoor plans recommended. Strongly."],
+  snow: ["Snow incoming. Your car is getting a white coat.", "Flakes on the way. Walk like a penguin.", "Snow: pretty from the window, slippery from the sidewalk."],
+  thunder: ["Thunder possible. Golf can wait.", "The sky is clearing its throat. Loudly."],
+  fog: ["Foggy. Visibility is more of a suggestion today.", "Peak mysterious-movie-opening weather."],
+  windy: ["Breezy enough to restyle your hair for free.", "Hold onto your hat. Literally."],
+  hot: ["Hot one. Hydrate like it's your job.", "The sidewalk could cook breakfast."],
+  cold: ["Dry but cold. Your nose will know first.", "Layers. All of them."],
+};
+
+function quipFor(mood, data) {
+  const c = data.current;
+  const imperial = state.units === "imperial";
+  const tF = imperial ? c.temperature_2m : c.temperature_2m * 9 / 5 + 32;
+  const windMph = imperial ? c.wind_speed_10m : c.wind_speed_10m / 1.609;
+  let key = mood;
+  if (c.weather_code >= 95) key = "thunder";
+  else if (mood === "dry") {
+    if (c.weather_code === 45 || c.weather_code === 48) key = "fog";
+    else if (windMph >= 25) key = "windy";
+    else if (tF >= 90) key = "hot";
+    else if (tF <= 35) key = "cold";
+    else if (c.weather_code <= 1) key = "dryClear";
+    else if (c.weather_code <= 3) key = "dryCloudy";
+  }
+  const list = QUIPS[key] || QUIPS.dry;
+  // Same joke for the whole hour, so it doesn't change on every refresh.
+  const seed = Math.floor(Date.now() / 3600e3) + key.length * 7;
+  return list[seed % list.length];
 }
 
 function clock(sec, tz) {
@@ -175,7 +216,10 @@ function render() {
 
   $("headline").textContent = s.head;
   $("subline").textContent = s.sub;
+  $("quip").textContent = quipFor(s.mood, d);
+  $("quip").hidden = false;
   drawChart(nc);
+  renderWhere(d);
 
   const deg = "°";
   const c = d.current;
@@ -218,18 +262,57 @@ async function load() {
 function setLoc(loc) {
   state.loc = loc;
   store.set("loc", loc);
-  $("sheet").close();
-  $("headline").textContent = "Checking the sky…";
-  $("subline").textContent = " ";
+  if ($("sheet").open) $("sheet").close();
+  if (!state.data) {
+    $("headline").textContent = "Checking the sky…";
+    $("subline").textContent = " ";
+  }
   load();
 }
 
-async function reverseName(lat, lon) {
+/* Nearest street address via OpenStreetMap (called once per new position, never on a timer). */
+async function reverseAddress(lat, lon) {
   try {
-    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    const j = await r.json();
-    return j.city || j.locality || j.principalSubdivision || "Current location";
-  } catch { return "Current location"; }
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`, { headers: { "Accept-Language": navigator.language || "en" } });
+    if (!r.ok) throw new Error();
+    const a = (await r.json()).address || {};
+    const town = a.city || a.town || a.village || a.hamlet || a.suburb || a.county || "";
+    const street = [a.house_number, a.road].filter(Boolean).join(" ");
+    const area = a.neighbourhood || a.suburb || "";
+    const address = [street, area !== town ? area : "", town, a.state].filter(Boolean).join(", ");
+    return { name: town || "Current location", address: address || "No street address nearby" };
+  } catch {
+    return { name: "Current location", address: "Address lookup unavailable" };
+  }
+}
+
+function distKm(lat1, lon1, lat2, lon2) {
+  const rad = Math.PI / 180, dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+}
+
+function fmtDist(km) {
+  if (state.units === "imperial") {
+    const mi = km / 1.609;
+    return mi < 0.2 ? Math.max(10, Math.round(mi * 5280 / 10) * 10) + " ft" : mi.toFixed(1) + " mi";
+  }
+  return km < 1 ? Math.max(5, Math.round(km * 1000 / 5) * 5) + " m" : km.toFixed(1) + " km";
+}
+
+function renderWhere(d) {
+  const L = state.loc;
+  if (!L) return;
+  $("where").hidden = false;
+  $("whereAddr").textContent = L.address || L.name;
+  $("whereHow").textContent = L.gps
+    ? (L.acc ? `GPS, accurate to within ${fmtDist(L.acc / 1000)}` : "GPS")
+    : "City search, so the forecast uses the city center";
+  const km = distKm(L.lat, L.lon, d.latitude, d.longitude);
+  $("whereGrid").textContent = `${fmtDist(km)} from ${L.gps ? "you" : "the city center"} (${d.latitude.toFixed(3)}, ${d.longitude.toFixed(3)})`;
+  $("whereElev").textContent = state.units === "imperial"
+    ? Math.round(d.elevation * 3.281).toLocaleString() + " ft"
+    : Math.round(d.elevation).toLocaleString() + " m";
 }
 
 function useGeolocation(fromButton) {
@@ -240,10 +323,12 @@ function useGeolocation(fromButton) {
   }
   msg.hidden = false; msg.textContent = "Finding you…";
   navigator.geolocation.getCurrentPosition(async (pos) => {
-    const { latitude: lat, longitude: lon } = pos.coords;
-    const name = await reverseName(lat, lon);
+    const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+    const prev = state.loc;
+    const moved = !prev || !prev.gps || !prev.address || distKm(prev.lat, prev.lon, lat, lon) > 0.1;
+    const place = moved ? await reverseAddress(lat, lon) : { name: prev.name, address: prev.address };
     msg.hidden = true;
-    setLoc({ lat, lon, name, gps: true });
+    setLoc({ lat, lon, name: place.name, address: place.address, acc: Math.round(accuracy), gps: true });
   }, (err) => {
     msg.textContent = err.code === 1
       ? "Location permission is off. Allow it in your browser settings, or search for a city."
@@ -273,7 +358,7 @@ async function search(q) {
       const strong = document.createElement("span"); strong.textContent = p.name;
       const small = document.createElement("small"); small.textContent = [p.admin1, p.country].filter(Boolean).join(", ");
       b.append(strong, small);
-      b.addEventListener("click", () => setLoc({ lat: p.latitude, lon: p.longitude, name: p.name }));
+      b.addEventListener("click", () => setLoc({ lat: p.latitude, lon: p.longitude, name: p.name, address: [p.name, p.admin1, p.country].filter(Boolean).join(", ") }));
       li.append(b); list.append(li);
     }
   } catch { list.innerHTML = `<li class="geo-msg">Search isn't reachable right now.</li>`; }
