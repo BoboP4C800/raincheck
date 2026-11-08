@@ -10,10 +10,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Fonts for all five designs. Slate: Bricolage + Plex. Aneroid: Bodoni Moda + Jost. Gate Change: Barlow Condensed + JetBrains Mono. Minute Hand: Archivo (variable width). Margin Notes: Caveat + Shantell Sans. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,400..800&family=Jost:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Archivo:wdth,wght@62..125,400..900&family=Caveat:wght@500;700&family=Shantell+Sans:wght@400;600&display=swap">
+<!-- Fonts for all five designs, bundled in /fonts so nothing is requested from Google (privacy, offline).
+     Slate: Bricolage + Plex. Aneroid: Bodoni Moda + Jost. Gate Change: Barlow Condensed + JetBrains Mono.
+     Minute Hand: Archivo (variable width). Margin Notes: Caveat + Shantell Sans. -->
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="base.css">
 <script>
   // Pick the design before first paint: ?design=… wins, then the saved choice, then Slate.
@@ -82,10 +82,12 @@
       <div><dt>Address</dt><dd id="whereAddr">–</dd></div>
       <div><dt>Your position</dt><dd id="whereHow">–</dd></div>
       <div><dt>Forecast point</dt><dd id="whereGrid">–</dd></div>
-      <div><dt>Elevation</dt><dd id="whereElev">–</dd></div>
+      <div><dt>Forecast elevation</dt><dd id="whereElev">–</dd></div>
     </dl>
     <p class="note">Weather models calculate forecasts at points on a grid a few kilometers apart. Raincheck uses the grid point nearest your position, so the forecast describes the few square kilometers around that point rather than your exact spot.</p>
+    <p class="note disclaimer"><strong>Forecasts are estimates, not official weather warnings.</strong> Rain can arrive earlier or later than shown. For severe weather, follow your national weather service.</p>
     <p class="note">Address lookup by <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Forecast data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. The 2-hour outlook comes in 15-minute steps. Over the US and central Europe those steps come from high-resolution models; elsewhere they are estimated from hourly data.</p>
+    <p class="note"><a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
   </form>
 </dialog>
 
@@ -95,7 +97,7 @@
       <h2 id="designTitle">Design</h2>
       <button class="x" value="close" aria-label="Close" type="submit">×</button>
     </div>
-    <p class="geo-msg">Development setting. Changes the look only; the forecast stays the same.</p>
+    <p class="geo-msg">Choose how Raincheck looks. Your forecast stays the same.</p>
     <div id="designList" class="design-list" role="radiogroup" aria-label="Designs"></div>
   </form>
 </dialog>

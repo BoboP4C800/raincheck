@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raincheck Privacy Policy</title>
+<meta name="description" content="What Raincheck collects, who it is shared with, and what it never does.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fonts/fonts.css">
+<!--
+  DRAFT for review. Before publishing to the Play Store:
+  1. Replace [CONTACT EMAIL] with the address users should write to.
+  2. Replace [DEVELOPER NAME] with your name or business name as shown on Google Play.
+  3. Re-check every section whenever the app's data handling changes (new services, notifications, ads, analytics).
+-->
+<style>
+  :root {
+    --bg: #EEF2F5; --surface: #FFFFFF; --ink: #14202B; --muted: #5B6B78; --line: #D6DEE5; --rain: #2F6FD6;
+    --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0C141B; --surface: #131E28; --ink: #E6EDF2; --muted: #8EA0AE; --line: #233340; --rain: #5AA2FF; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--font-body); }
+  main {
+    max-width: 680px; margin: 0 auto;
+    padding-block: calc(env(safe-area-inset-top, 0px) + 32px) calc(env(safe-area-inset-bottom, 0px) + 48px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  h1 { font: 700 clamp(30px, 7vw, 40px)/1.1 var(--font-display); letter-spacing: -.02em; margin: 0 0 6px; }
+  h2 { font: 700 20px/1.25 var(--font-display); margin: 32px 0 8px; }
+  .date { color: var(--muted); margin: 0 0 24px; }
+  .summary { background: var(--surface); border-radius: 14px; padding: 16px 18px; }
+  .summary ul { margin: 8px 0 0; padding-left: 20px; }
+  p, li { max-width: 65ch; }
+  a { color: var(--rain); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .table-wrap { overflow-x: auto; background: var(--surface); border-radius: 14px; padding: 4px 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .back { display: inline-block; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← Back to Raincheck</a>
+  <h1>Raincheck Privacy Policy</h1>
+  <p class="date">Effective November 7, 2026 · Published by [DEVELOPER NAME]</p>
+
+  <div class="summary">
+    <strong>The short version</strong>
+    <ul>
+      <li>Raincheck uses your location only to fetch the weather for where you are.</li>
+      <li>Your location and settings are stored only on your device.</li>
+      <li>There are no accounts, ads, analytics or tracking, and your data is never sold.</li>
+    </ul>
+  </div>
+
+  <h2>What Raincheck uses</h2>
+  <ul>
+    <li><strong>Your location</strong>, if you choose "Use my location". It comes from your device and is used only while the app is open. Raincheck never accesses your location in the background.</li>
+    <li><strong>A city name</strong>, if you search for one instead.</li>
+    <li><strong>Your settings</strong>: the place you last chose, its address label, temperature units, and the design you picked.</li>
+  </ul>
+  <p>Location and settings are saved in the app's storage on your device so Raincheck opens to your place next time. They stay there until you change them, clear the app's data, or uninstall it.</p>
+
+  <h2>Who receives information, and why</h2>
+  <p>To show a forecast, Raincheck has to ask weather and map services on the internet. Like any internet request, each service also sees your device's IP address. Raincheck sends the least it can:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Service</th><th>What it receives</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Open-Meteo</a></td>
+          <td>Your position rounded to about 1 km (0.01°), and your unit preference</td>
+          <td>To get the forecast</td>
+        </tr>
+        <tr>
+          <td><a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Open-Meteo</a> geocoding</td>
+          <td>The text you type in city search</td>
+          <td>To find matching places</td>
+        </tr>
+        <tr>
+          <td><a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OpenStreetMap (Nominatim)</a></td>
+          <td>Your position rounded to about 10 m (0.0001°), only when you have moved more than about 100 m since the last lookup</td>
+          <td>To show the nearest street address under "Forecast location"</td>
+        </tr>
+        <tr>
+          <td><a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Pages</a> (web version only)</td>
+          <td>Standard web requests for the app's files</td>
+          <td>To deliver the app in a browser</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>These services handle that information under their own privacy policies, linked above. Raincheck does not send them your name, account details or device identifiers, because it has none of those.</p>
+
+  <h2>What Raincheck does not do</h2>
+  <ul>
+    <li>No accounts or sign-in.</li>
+    <li>No advertising, analytics, crash-reporting or tracking tools.</li>
+    <li>No selling or sharing of data for advertising.</li>
+    <li>No background location access.</li>
+    <li>No servers of its own that store your data.</li>
+  </ul>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Location</strong> (only while using the app): to forecast for where you are. You can deny it and search for a city instead.</li>
+    <li><strong>Internet</strong>: to download forecasts.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>Raincheck is a general-audience weather app. It is not directed at children under 13 and does not knowingly collect personal information from them.</p>
+
+  <h2>Forecast accuracy</h2>
+  <p>Forecasts are estimates, not official weather warnings. For severe weather, follow your national weather service.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If Raincheck's handling of data changes, this page will be updated and the effective date above will change.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: [CONTACT EMAIL]</p>
+</main>
+</body>
+</html>

@@ -55,6 +55,7 @@ main > .nowcast { flex: 1 1 0; min-height: 130px; display: flex; flex-direction:
 .where dl { margin: 4px 0 0; display: grid; gap: 10px; }
 .where .note { margin: 0; font-size: 12px; color: var(--muted); }
 .where .note a { color: var(--rain); }
+.where .disclaimer { color: var(--ink); padding: 10px 12px; border-radius: 10px; background: var(--bg); }
 .where dl > div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .where dd { margin: 0; overflow-wrap: anywhere; }
 .headline, .subline, .quip { margin: 0; }
@@ -92,7 +93,7 @@ main > .nowcast { flex: 1 1 0; min-height: 130px; display: flex; flex-direction:
 }
 .results small { color: var(--muted); }
 
-/* Bottom bar: Forecast location + Design (development setting) */
+/* Bottom bar: Forecast location + Design setting */
 .dock { flex: none; display: flex; justify-content: space-between; gap: 8px; padding-top: 10px; }
 .pill {
   background: var(--ink); color: var(--bg);

@@ -32,9 +32,11 @@ const state = {
 /* ---------- data ---------- */
 async function fetchForecast(loc) {
   const imperial = state.units === "imperial";
+  // Privacy: send the forecast service a position rounded to ~1 km (2 decimals). Its grid points
+  // are a few km apart, so the forecast is the same, and your exact spot never leaves the device here.
   const p = new URLSearchParams({
-    latitude: loc.lat.toFixed(4),
-    longitude: loc.lon.toFixed(4),
+    latitude: loc.lat.toFixed(2),
+    longitude: loc.lon.toFixed(2),
     timezone: "auto",
     timeformat: "unixtime",
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m",
@@ -220,7 +222,7 @@ function hourLabel(sec, tz) {
 
 /* ---------- designs ---------- */
 const DESIGNS = [
-  { id: "slate", name: "Slate", blurb: "The control. A plain sentence, a line chart, cool grays." },
+  { id: "slate", name: "Slate", blurb: "The original. A plain sentence, a line chart, cool grays." },
   { id: "aneroid", name: "Aneroid", blurb: "A barometer dial. The next two hours wrap around the face like a clock." },
   { id: "gate", name: "Gate Change", blurb: "An arrivals board. Rain is announced like a delayed flight." },
   { id: "minute", name: "Minute Hand", blurb: "One enormous countdown on a field of color that changes with the sky." },
@@ -467,7 +469,7 @@ function setLoc(loc) {
 /* Nearest street address via OpenStreetMap (called once per new position, never on a timer). */
 async function reverseAddress(lat, lon) {
   try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`, { headers: { "Accept-Language": navigator.language || "en" } });
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`, { headers: { "Accept-Language": navigator.language || "en" } });
     if (!r.ok) throw new Error();
     const a = (await r.json()).address || {};
     const town = a.city || a.town || a.village || a.hamlet || a.suburb || a.county || "";
@@ -579,7 +581,7 @@ setInterval(() => { if (document.visibilityState === "visible") load(); }, 5 * 6
 // Re-render every minute so "starting in N min" counts down between fetches.
 setInterval(() => { if (state.data) render(); }, 60e3);
 
-// Design switcher (development setting). Also reachable as ?design=slate|aneroid|gate|minute|margin
+// Design setting (remembered on the device). Also reachable as ?design=slate|aneroid|gate|minute|margin
 $("designBtn").addEventListener("click", () => { paintDesignList(); $("designSheet").showModal(); });
 $("whereBtn").addEventListener("click", () => $("whereSheet").showModal());
 $("designList").addEventListener("click", (e) => {
