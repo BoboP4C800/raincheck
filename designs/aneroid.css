@@ -1,0 +1,95 @@
+/* ANEROID — a barometer. Centered, symmetrical; the dial comes first and holds the countdown,
+   the sentence sits beneath it like an engraved caption. Celadon enamel and brass, Bodoni numerals. */
+:root {
+  --bg: #DCE5DF; --surface: #EAF0EC; --face: #F4F8F5; --ink: #1D2B24; --muted: #5A6C62; --line: #BACABF;
+  --brass: #9A7226; --rain: #1F5E8C; --on-rain: #FFFFFF; --snow: #6B7F99;
+  --font-display: "Bodoni Moda", Didot, "Times New Roman", serif;
+  --font-body: "Jost", "Century Gothic", "Segoe UI", sans-serif;
+  --font-data: "Jost", "Century Gothic", "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1A15; --surface: #16241D; --face: #1B2C24; --ink: #E7EEE9; --muted: #93A79B; --line: #2C4035;
+    --brass: #C9A355; --rain: #7DB8EC; --on-rain: #0F1A15; --snow: #B4C4D8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1A15; --surface: #16241D; --face: #1B2C24; --ink: #E7EEE9; --muted: #93A79B; --line: #2C4035;
+  --brass: #C9A355; --rain: #7DB8EC; --on-rain: #0F1A15; --snow: #B4C4D8;
+  color-scheme: dark;
+}
+
+body { font: 400 15px/1.55 var(--font-body); }
+.top { justify-content: center; position: relative; }
+.place { font: 500 13px var(--font-body); letter-spacing: .22em; text-transform: uppercase; }
+.chip {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  background: none; border: 1px solid var(--brass); color: var(--brass);
+  border-radius: 999px; padding: 4px 10px; font: 500 12px var(--font-body);
+}
+
+main { display: flex; flex-direction: column; gap: 24px; }
+.nowcast { order: 1; } .hero { order: 2; } .now { order: 3; } .hours-card { order: 4; } .where { order: 5; } .foot { order: 6; }
+
+/* The dial */
+.nowcast { background: none; padding: 0; }
+.nowcast .card-head { justify-content: center; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 12px; }
+.nowcast h2 { font: 500 11px var(--font-body); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
+.nowcast .meta { font: italic 400 13px var(--font-display); color: var(--muted); }
+.chart-aneroid {
+  width: min(100%, 340px); margin: 0 auto; aspect-ratio: 1; border-radius: 50%; padding: 10px;
+  background: radial-gradient(circle at 50% 40%, var(--face), var(--surface) 70%);
+  border: 2px solid var(--brass);
+  box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 6px var(--brass), 0 10px 30px rgba(0, 0, 0, .12);
+}
+.chart-aneroid .face { fill: var(--face); stroke: var(--brass); stroke-width: 1.2; }
+.chart-aneroid .tick { stroke: var(--muted); stroke-width: 1; }
+.chart-aneroid .tick.major { stroke: var(--ink); stroke-width: 1.8; }
+.chart-aneroid .tlabel { font: 600 10px var(--font-body); letter-spacing: .12em; fill: var(--muted); }
+.chart-aneroid .ray { stroke: var(--rain); stroke-width: 2.4; stroke-linecap: round; }
+.chart-aneroid.snow .ray { stroke: var(--snow); }
+.chart-aneroid .ray.trace { opacity: .3; }
+.chart-aneroid .hand { stroke: var(--brass); stroke-width: 2.2; stroke-linecap: round; }
+.chart-aneroid .pivot { fill: var(--brass); }
+.chart-aneroid .num { font: 700 66px var(--font-display); fill: var(--ink); }
+.chart-aneroid .unit { font: 500 9.5px var(--font-body); letter-spacing: .16em; fill: var(--muted); }
+
+.hero { text-align: center; }
+.headline { font: 600 italic clamp(24px, 7vw, 30px)/1.2 var(--font-display); text-wrap: balance; }
+.subline { margin-top: 8px; color: var(--muted); }
+.quip { margin: 14px auto 0; max-width: 30em; font-size: 14px; color: var(--brass); letter-spacing: .02em; }
+.quip::before, .quip::after { content: " ~ "; }
+
+.now { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); text-align: center; }
+.stat { display: grid; gap: 2px; padding: 4px 6px; min-width: 0; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat .k { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 24px/1.2 var(--font-display); font-variant-numeric: lining-nums; white-space: nowrap; }
+.stat .d { font-size: 11px; color: var(--muted); }
+@media (max-width: 360px) { .now { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; } .stat:nth-child(3) { border-left: 0; } }
+
+.card:not(.nowcast) { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px; }
+.card:not(.nowcast) h2 { font: 500 11px var(--font-body); letter-spacing: .26em; text-transform: uppercase; color: var(--brass); }
+.meta { font-size: 12px; color: var(--muted); }
+
+.hours-wrap { margin: 0 -18px; padding: 0 18px; }
+.hours { display: grid; grid-auto-flow: column; grid-auto-columns: 50px; gap: 6px; }
+.hour { display: grid; justify-items: center; gap: 6px; }
+.hour .t { font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+.bar { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--face); }
+.bar i { inset: 0; border-radius: 50%; background: conic-gradient(var(--rain) var(--p), transparent 0); }
+.hour .p { font-size: 11px; color: var(--muted); }
+.hour.wet .p { color: var(--rain); font-weight: 600; }
+.hour .tmp { font: 500 17px var(--font-display); }
+
+.where dt { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.where .note { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.foot { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+.foot a { color: var(--brass); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .chart-aneroid .hand { transform-origin: 160px 160px; animation: swing 1.1s cubic-bezier(.3, 1.4, .5, 1); }
+  @keyframes swing { from { transform: rotate(-40deg); } to { transform: rotate(0); } }
+}

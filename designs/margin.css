@@ -1,0 +1,92 @@
+/* MARGIN NOTES — a field notebook. Graph paper page, handwritten headline, taped-in cards set slightly askew,
+   the chart is a hatched pencil sketch with a red-pen note pointing at the change. Dark mode becomes a blueprint. */
+:root {
+  --bg: #F3F7FB; --grid: rgba(64, 116, 186, .13); --grid-major: rgba(64, 116, 186, .26);
+  --surface: #FFFFFF; --ink: #1E2A44; --muted: #5C6982; --line: #C9D6E6;
+  --pen: #CF3A3A; --rain: #2B57CF; --on-rain: #FFFFFF; --snow: #6A7FA0; --tape: rgba(250, 210, 105, .7);
+  --font-display: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --font-body: "Shantell Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "Shantell Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F2747; --grid: rgba(160, 200, 255, .1); --grid-major: rgba(160, 200, 255, .2);
+    --surface: #163259; --ink: #EAF2FF; --muted: #A8BCDA; --line: #2F507E;
+    --pen: #FFC857; --rain: #9CC8FF; --on-rain: #0F2747; --snow: #D5E3F5; --tape: rgba(255, 255, 255, .16);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F2747; --grid: rgba(160, 200, 255, .1); --grid-major: rgba(160, 200, 255, .2);
+  --surface: #163259; --ink: #EAF2FF; --muted: #A8BCDA; --line: #2F507E;
+  --pen: #FFC857; --rain: #9CC8FF; --on-rain: #0F2747; --snow: #D5E3F5; --tape: rgba(255, 255, 255, .16);
+  color-scheme: dark;
+}
+
+body {
+  font: 400 15px/1.55 var(--font-body);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px), linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}
+.place { font: 700 28px/1 var(--font-display); }
+.place svg { color: var(--pen); }
+.chip { background: var(--surface); border: 1.5px solid var(--ink); border-radius: 12px 14px 11px 15px; padding: 3px 10px; font: 600 13px var(--font-body); }
+
+main { gap: 26px; }
+.hero { padding: 6px 4px 0; }
+.headline { font: 700 clamp(42px, 13vw, 54px)/.95 var(--font-display); text-wrap: balance; }
+.subline { margin-top: 8px; color: var(--muted); }
+.quip {
+  margin: 14px 0 0 18px; font: 700 25px/1.1 var(--font-display); color: var(--pen);
+  transform: rotate(-2deg); transform-origin: left;
+}
+.quip::before { content: "↳ "; }
+
+.card {
+  position: relative; background: var(--surface); border-radius: 3px; padding: 22px 16px 16px;
+  box-shadow: 0 1px 0 var(--line), 0 8px 18px rgba(16, 36, 72, .1);
+}
+.card::before {
+  content: ""; position: absolute; top: -11px; left: 50%; width: 92px; height: 22px;
+  transform: translateX(-50%) rotate(-3deg); background: var(--tape);
+}
+.nowcast { transform: rotate(-.7deg); }
+.hours-card { transform: rotate(.5deg); }
+.where { transform: rotate(-.4deg); }
+.card-head h2 { font: 700 26px/1 var(--font-display); }
+.meta { font: 600 20px/1 var(--font-display); color: var(--muted); }
+
+.chart-margin .hatched { fill: url(#hatch); }
+.chart-margin .hatch { stroke: var(--rain); stroke-width: 1.3; opacity: .6; }
+.chart-margin .scrawl { fill: none; stroke: var(--rain); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.chart-margin.snow .scrawl, .chart-margin.snow .hatch { stroke: var(--snow); }
+.chart-margin .base { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
+.chart-margin .tk { font: 600 16px var(--font-display); fill: var(--muted); }
+.chart-margin .note { font: 700 20px var(--font-display); fill: var(--pen); }
+.chart-margin .arrow { fill: none; stroke: var(--pen); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 0 4px; }
+.stat { display: grid; min-width: 0; }
+.stat .k { font: 700 21px/1 var(--font-display); color: var(--muted); }
+.stat .v { font: 600 26px/1.2 var(--font-body); white-space: nowrap; }
+.stat .d { font: 700 20px/1 var(--font-display); color: var(--pen); }
+
+.hours-wrap { margin: 0 -16px; padding: 0 16px; }
+.hours { display: grid; grid-auto-flow: column; grid-auto-columns: 48px; gap: 6px; }
+.hour { display: grid; justify-items: center; gap: 4px; }
+.hour .t { font: 700 18px var(--font-display); color: var(--muted); }
+.bar { width: 14px; height: 56px; border: 1.5px solid var(--ink); border-radius: 4px 3px 5px 3px; }
+.bar i { inset: auto 0 0 0; height: var(--p); background: repeating-linear-gradient(-45deg, var(--rain) 0 2px, transparent 2px 4px); }
+.hour .p { font-size: 12px; color: var(--muted); }
+.hour.wet .p { color: var(--pen); font-weight: 600; }
+.hour .tmp { font: 600 15px var(--font-body); }
+
+.where dt { font: 700 20px/1.2 var(--font-display); color: var(--muted); }
+.where .note { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.foot { font-size: 12px; color: var(--muted); margin: 0; padding: 0 4px; }
+.foot a { color: var(--rain); }
+.design-btn { font-family: var(--font-body); }

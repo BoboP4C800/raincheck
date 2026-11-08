@@ -1,0 +1,63 @@
+/* MINUTE HAND — a poster. One enormous condensed countdown; the whole page is a single field of color
+   chosen by the sky (data-sky): sun yellow when dry, sky blue for light rain, cobalt for moderate,
+   indigo for heavy, ice white for snow. No cards: everything sits straight on the field. Single look by design. */
+:root {
+  --bg: #FFD23F; --surface: #FFF0BA; --ink: #141414; --muted: rgba(20, 20, 20, .66); --line: rgba(20, 20, 20, .16);
+  --rain: #141414; --on-rain: #FFD23F;
+  --font-display: "Archivo", "Arial Black", "Helvetica Neue", sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", "Segoe UI", sans-serif;
+  --font-data: "Archivo", "Helvetica Neue", "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+:root[data-sky="light"] { --bg: #8EC5FF; --surface: #D3E8FF; --ink: #0A1A33; --muted: rgba(10, 26, 51, .7); --line: rgba(10, 26, 51, .18); --rain: #0A1A33; --on-rain: #8EC5FF; }
+:root[data-sky="moderate"] { --bg: #2F5BEA; --surface: #2349C4; --ink: #FFFFFF; --muted: rgba(255, 255, 255, .78); --line: rgba(255, 255, 255, .24); --rain: #FFFFFF; --on-rain: #2F5BEA; color-scheme: dark; }
+:root[data-sky="heavy"] { --bg: #1B1464; --surface: #140F4C; --ink: #F2F0FF; --muted: rgba(242, 240, 255, .74); --line: rgba(242, 240, 255, .2); --rain: #F2F0FF; --on-rain: #1B1464; color-scheme: dark; }
+:root[data-sky="snow"] { --bg: #EEF3F8; --surface: #FFFFFF; --ink: #17202B; --muted: rgba(23, 32, 43, .66); --line: rgba(23, 32, 43, .14); --rain: #17202B; --on-rain: #EEF3F8; }
+
+body { font: 400 16px/1.45 var(--font-body); }
+@media (prefers-reduced-motion: no-preference) { body { transition: background-color .6s ease, color .6s ease; } }
+
+.place { font: 800 15px var(--font-display); font-stretch: 112%; text-transform: uppercase; letter-spacing: .04em; }
+.chip { background: none; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; font: 800 13px var(--font-display); }
+
+main { gap: 28px; }
+.hero { padding-top: 4px; }
+.big { display: block; margin-bottom: 18px; }
+.big-num {
+  display: block; font: 900 clamp(150px, 54vw, 260px)/.8 var(--font-display); font-stretch: 62%;
+  letter-spacing: -.04em; margin-left: -.04em;
+}
+.big-label { display: block; margin-top: 10px; font: 800 22px/1.1 var(--font-display); font-stretch: 115%; text-transform: uppercase; letter-spacing: .01em; }
+.headline { font: 700 22px/1.25 var(--font-display); text-wrap: balance; }
+.subline { margin-top: 4px; color: var(--muted); }
+.quip { margin-top: 14px; font: 500 italic 17px/1.35 var(--font-body); }
+
+.card { background: none; padding: 0; }
+.card-head h2 { font: 900 15px var(--font-display); font-stretch: 125%; text-transform: uppercase; letter-spacing: .02em; }
+.meta { font-size: 12px; color: var(--muted); }
+
+.chart-minute .b { fill: var(--line); }
+.chart-minute .b.wet { fill: var(--ink); }
+.chart-minute text { font: 800 11px var(--font-display); font-stretch: 112%; fill: var(--ink); }
+
+.now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+.stat { display: grid; min-width: 0; }
+.stat .k { font: 800 12px var(--font-display); font-stretch: 115%; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 900 46px/1 var(--font-display); font-stretch: 70%; white-space: nowrap; }
+.stat .d { font-size: 14px; font-weight: 600; }
+
+.hours { display: grid; grid-auto-flow: column; grid-auto-columns: 44px; gap: 8px; }
+.hour { display: grid; justify-items: center; gap: 6px; }
+.hour .t { font: 800 12px var(--font-display); }
+.bar { width: 18px; height: 64px; border: 2px solid var(--ink); border-radius: 3px; }
+.bar i { inset: auto 0 0 0; height: var(--p); background: var(--ink); }
+.hour .p { font-size: 12px; font-weight: 600; color: var(--muted); }
+.hour.wet .p { color: var(--ink); font-weight: 800; }
+.hour .tmp { font: 900 20px var(--font-display); font-stretch: 75%; }
+
+.where dt { font: 800 11px var(--font-display); font-stretch: 115%; text-transform: uppercase; color: var(--muted); }
+.where dd { font-weight: 600; }
+.where .note { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.foot { font-size: 12px; color: var(--muted); margin: 0; }
+.foot a { color: var(--ink); }
+.design-opt[aria-checked="true"] { border-color: var(--ink); }

@@ -12,8 +12,19 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css">
+<!-- Fonts for all five designs. Slate: Bricolage + Plex. Aneroid: Bodoni Moda + Jost. Gate Change: Barlow Condensed + JetBrains Mono. Minute Hand: Archivo (variable width). Margin Notes: Caveat + Shantell Sans. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,400..800&family=Jost:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Archivo:wdth,wght@62..125,400..900&family=Caveat:wght@500;700&family=Shantell+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="base.css">
+<script>
+  // Pick the design before first paint: ?design=… wins, then the saved choice, then Slate.
+  (function () {
+    var ids = ["slate", "aneroid", "gate", "minute", "margin"], d = null;
+    try { d = new URLSearchParams(location.search).get("design") || localStorage.getItem("design"); } catch (e) {}
+    if (ids.indexOf(d) < 0) d = "slate";
+    document.documentElement.dataset.design = d;
+    document.write('<link id="designCss" rel="stylesheet" href="designs/' + d + '.css">');
+  })();
+</script>
 </head>
 <body>
 <div class="app">
@@ -27,6 +38,7 @@
 
   <main>
     <section class="hero" aria-live="polite">
+      <div class="big" aria-hidden="true"><span id="bigNum" class="big-num"></span><span id="bigLabel" class="big-label"></span></div>
       <p id="headline" class="headline">Checking the sky…</p>
       <p id="subline" class="subline">&nbsp;</p>
       <p id="quip" class="quip" hidden></p>
@@ -47,7 +59,7 @@
       <div class="stat"><span class="k">Humidity</span><span class="v" id="humid">–</span></div>
     </section>
 
-    <section class="card" aria-labelledby="hrTitle">
+    <section class="card hours-card" aria-labelledby="hrTitle">
       <div class="card-head"><h2 id="hrTitle">Next 12 hours</h2><span class="meta">chance of precipitation</span></div>
       <div class="hours-wrap"><ol id="hours" class="hours"></ol></div>
     </section>
@@ -66,6 +78,19 @@
     <p class="foot">Address lookup by <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Forecast data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. The 2-hour outlook comes in 15-minute steps. Over the US and central Europe those steps come from high-resolution models; elsewhere they are estimated from hourly data.</p>
   </main>
 </div>
+
+<button id="designBtn" class="design-btn" type="button" aria-haspopup="dialog">Design: <span id="designName">Slate</span></button>
+
+<dialog id="designSheet" class="sheet" aria-labelledby="designTitle">
+  <form method="dialog" class="sheet-inner">
+    <div class="sheet-head">
+      <h2 id="designTitle">Design</h2>
+      <button class="x" value="close" aria-label="Close" type="submit">×</button>
+    </div>
+    <p class="geo-msg">Development setting. Changes the look only; the forecast stays the same.</p>
+    <div id="designList" class="design-list" role="radiogroup" aria-label="Designs"></div>
+  </form>
+</dialog>
 
 <dialog id="sheet" class="sheet" aria-labelledby="sheetTitle">
   <form method="dialog" class="sheet-inner" id="searchForm">

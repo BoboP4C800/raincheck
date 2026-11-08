@@ -26,6 +26,7 @@ const state = {
   units: store.get("units") || "imperial",     // imperial | metric
   data: null,
   fetchedAt: 0,
+  design: document.documentElement.dataset.design || "slate", // set before paint by the inline script in index.html
 };
 
 /* ---------- data ---------- */
@@ -95,12 +96,18 @@ function summarize(data, nc, nowSec) {
   const kind = snow ? "snow" : "rain";
   const peakOf = (a, b) => Math.max(...curve.slice(a, b + 1));
   const wetNow = curve[0] >= WET || (data.current.precipitation || 0) > 0.05;
+  const skyOf = (word) => (snow ? "snow" : word.toLowerCase());
+  const roundMin = (m) => Math.max(5, Math.round(m / 5) * 5);
+  // Every summary also carries: num/unit/label (a countdown the designs can show big),
+  // sky (dry|light|moderate|heavy|snow), at (minute index of the next change, or null), kind, wet.
 
   if (wetNow) {
     const end = curve.findIndex((r) => r < WET);
     const word = intensityWord(peakOf(0, end > 0 ? end : WINDOW));
-    if (end > 0) return { head: `${word} ${kind} stopping in about ${minutesText(end)}.`, sub: `Then dry for a while.`, mood: snow ? "snow" : "stopping" };
-    return { head: `${word} ${kind} for the next two hours.`, sub: `No break expected before ${clock(nowSec + WINDOW * 60, data.timezone)}.`, mood: snow ? "snow" : "continuing" };
+    if (end > 0) return { head: `${word} ${kind} stopping in about ${minutesText(end)}.`, sub: `Then dry for a while.`, mood: snow ? "snow" : "stopping",
+      num: roundMin(end), unit: "min", label: `until the ${kind} stops`, sky: skyOf(word), at: end, kind, wet: true };
+    return { head: `${word} ${kind} for the next two hours.`, sub: `No break expected before ${clock(nowSec + WINDOW * 60, data.timezone)}.`, mood: snow ? "snow" : "continuing",
+      num: "2h+", unit: "", label: `of ${kind} ahead`, sky: skyOf(word), at: null, kind, wet: true };
   }
 
   const start = curve.findIndex((r) => r >= WET);
@@ -112,17 +119,19 @@ function summarize(data, nc, nowSec) {
       head: `${word} ${kind} starting in about ${minutesText(start)}.`,
       sub: end < 0 ? `Likely to continue past ${clock(nowSec + WINDOW * 60, data.timezone)}.` : `Lasting about ${minutesText(end - start)}.`,
       mood: snow ? "snow" : "start" + word,
+      num: roundMin(start), unit: "min", label: `until ${kind}`, sky: skyOf(word), at: start, kind, wet: false,
     };
   }
 
+  const dry = { num: "0", unit: "min", label: "of rain ahead", sky: "dry", at: null, kind: "rain", wet: false };
   const h = data.hourly;
   for (let i = 0; i < h.time.length; i++) {
     if (h.time[i] <= nowSec + WINDOW * 60) continue;
     if ((h.precipitation_probability[i] || 0) >= 40) {
-      return { head: "No rain for the next two hours.", sub: `${h.precipitation_probability[i]}% chance around ${clock(h.time[i], data.timezone)}.`, mood: "dryLater" };
+      return { ...dry, head: "No rain for the next two hours.", sub: `${h.precipitation_probability[i]}% chance around ${clock(h.time[i], data.timezone)}.`, mood: "dryLater" };
     }
   }
-  return { head: "No rain for the next two hours.", sub: "The next 12 hours look dry too.", mood: "dry" };
+  return { ...dry, head: "No rain for the next two hours.", sub: "The next 12 hours look dry too.", mood: "dry" };
 }
 
 /* ---------- a little personality (humor: 5/10) ---------- */
@@ -209,39 +218,174 @@ function hourLabel(sec, tz) {
   return new Intl.DateTimeFormat(undefined, { hour: "numeric", timeZone: tz }).format(sec * 1000).replace(/\s/g, "");
 }
 
-/* ---------- rendering ---------- */
-function drawChart(nc) {
-  const W = 340, H = 150, L = 6, R = 58, T = 8, B = 22;
-  const pw = W - L - R, ph = H - T - B;
-  const CAP = 16;
-  const y = (r) => T + ph - (Math.log1p(Math.min(r, CAP)) / Math.log1p(CAP)) * ph;
-  const x = (k) => L + (k / WINDOW) * pw;
+/* ---------- designs ---------- */
+const DESIGNS = [
+  { id: "slate", name: "Slate", blurb: "The control. A plain sentence, a line chart, cool grays." },
+  { id: "aneroid", name: "Aneroid", blurb: "A barometer dial. The next two hours wrap around the face like a clock." },
+  { id: "gate", name: "Gate Change", blurb: "An arrivals board. Rain is announced like a delayed flight." },
+  { id: "minute", name: "Minute Hand", blurb: "One enormous countdown on a field of color that changes with the sky." },
+  { id: "margin", name: "Margin Notes", blurb: "A field notebook on graph paper, with scribbles in the margins." },
+];
 
-  let pts = "";
-  nc.curve.forEach((r, k) => { pts += `${x(k).toFixed(1)},${y(r).toFixed(1)} `; });
-  const area = `M${x(0)},${y(0)} L${pts.trim().split(" ").join(" L")} L${x(WINDOW)},${y(0)} Z`;
+const CAP = 16; // mm/h at the top of every intensity scale
+const scale = (r) => Math.log1p(Math.min(r, CAP)) / Math.log1p(CAP); // 0..1, log so drizzle still shows
+const avgOf = (arr) => arr.reduce((a, b) => a + b, 0) / (arr.length || 1);
+const f1 = (n) => n.toFixed(1);
 
-  const bands = [[0.5, "Light"], [LIGHT_MAX, "Moderate"], [MOD_MAX, "Heavy"]]
-    .map(([r, label]) => `<line class="band" x1="${L}" x2="${L + pw}" y1="${y(r)}" y2="${y(r)}"/>
-      <text x="${L + pw + 6}" y="${y(r) + 3.5}">${label}</text>`).join("");
+/* Each design draws the 2-hour nowcast its own way. All return markup for #chart. */
+const CHARTS = {
+  slate(nc) {
+    const W = 340, H = 150, L = 6, R = 58, T = 8, B = 22;
+    const pw = W - L - R, ph = H - T - B;
+    const y = (r) => T + ph - scale(r) * ph;
+    const x = (k) => L + (k / WINDOW) * pw;
+    let pts = "";
+    nc.curve.forEach((r, k) => { pts += `${f1(x(k))},${f1(y(r))} `; });
+    const area = `M${x(0)},${y(0)} L${pts.trim().split(" ").join(" L")} L${x(WINDOW)},${y(0)} Z`;
+    const bands = [[0.5, "Light"], [LIGHT_MAX, "Moderate"], [MOD_MAX, "Heavy"]]
+      .map(([r, label]) => `<line class="band" x1="${L}" x2="${L + pw}" y1="${y(r)}" y2="${y(r)}"/>
+        <text x="${L + pw + 6}" y="${y(r) + 3.5}">${label}</text>`).join("");
+    const ticks = [[0, "Now"], [30, "30m"], [60, "1h"], [90, "1h30"], [120, "2h"]]
+      .map(([k, label], i, arr) => {
+        const anchor = i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle";
+        return `<line class="grid" x1="${x(k)}" x2="${x(k)}" y1="${T + ph}" y2="${T + ph + 4}"/>
+          <text x="${x(k)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`;
+      }).join("");
+    return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${bands}
+      <line class="grid" x1="${L}" x2="${L + pw}" y1="${T + ph}" y2="${T + ph}"/>${ticks}
+      <path class="area" d="${area}"/><polyline class="edge" points="${pts}"/>
+      <circle class="now-dot" cx="${x(0)}" cy="${y(nc.curve[0])}" r="3.5"/></svg>`;
+  },
 
-  const ticks = [[0, "Now"], [30, "30m"], [60, "1h"], [90, "1h30"], [120, "2h"]]
-    .map(([k, label], i, arr) => {
-      const anchor = i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle";
-      return `<line class="grid" x1="${x(k)}" x2="${x(k)}" y1="${T + ph}" y2="${T + ph + 4}"/>
-        <text x="${x(k)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`;
-    }).join("");
+  /* Barometer face: "now" at 12 o'clock, two hours once around. Rain is drawn as rays off the ring. */
+  aneroid(nc, s) {
+    const C = 160, R0 = 86, RM = 128;
+    const pol = (deg, r) => [C + r * Math.cos(deg * Math.PI / 180), C + r * Math.sin(deg * Math.PI / 180)];
+    let rays = "", ticks = "";
+    for (let k = 0; k < WINDOW; k++) {
+      const r = nc.curve[k];
+      if (r < 0.05) continue;
+      const a = -90 + k * 3;
+      const [x1, y1] = pol(a, R0 + 3), [x2, y2] = pol(a, R0 + 3 + Math.max(0.08, scale(r)) * (RM - R0));
+      rays += `<line class="ray${r < WET ? " trace" : ""}" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}"/>`;
+    }
+    for (let k = 0; k < WINDOW; k += 5) {
+      const a = -90 + k * 3, major = k % 15 === 0;
+      const [x1, y1] = pol(a, 133), [x2, y2] = pol(a, major ? 143 : 138);
+      ticks += `<line class="tick${major ? " major" : ""}" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}"/>`;
+      if (k % 30 === 0) {
+        const [tx, ty] = pol(a, 152);
+        ticks += `<text class="tlabel" x="${f1(tx)}" y="${f1(ty + 3.5)}" text-anchor="middle">${k === 0 ? "NOW" : k}</text>`;
+      }
+    }
+    const ha = -90 + (s.at ?? 0) * 3;
+    const [hx, hy] = pol(ha, 124), [tx0, ty0] = pol(ha, 64);
+    const caption = [s.unit, s.label].filter(Boolean).join(" ").toUpperCase();
+    return `<svg viewBox="0 0 320 320" aria-hidden="true">
+      <circle class="face" cx="${C}" cy="${C}" r="${R0}"/>
+      ${ticks}${rays}
+      <line class="hand" x1="${f1(tx0)}" y1="${f1(ty0)}" x2="${f1(hx)}" y2="${f1(hy)}"/>
+      <circle class="pivot" cx="${f1(hx)}" cy="${f1(hy)}" r="4"/>
+      <text class="num" x="${C}" y="${C + 14}" text-anchor="middle">${s.num}</text>
+      <text class="unit" x="${C}" y="${C + 38}" text-anchor="middle">${caption}</text>
+    </svg>`;
+  },
 
+  /* Arrivals board: one row per 15 minutes. */
+  gate(nc, s, d, nowSec) {
+    let rows = "";
+    for (let k = 0; k < WINDOW; k += 15) {
+      const avg = avgOf(nc.curve.slice(k, k + 15));
+      const wet = avg >= WET;
+      const lvl = !wet ? 0 : avg < LIGHT_MAX ? 1 : avg < MOD_MAX ? 2 : 3;
+      const status = wet ? `${intensityWord(avg)} ${nc.snow ? "snow" : "rain"}` : "Clear";
+      const pips = [1, 2, 3].map((i) => `<i class="${i <= lvl ? "on" : ""}"></i>`).join("");
+      rows += `<tr class="${wet ? "wet" : ""}"><td class="tm">${k === 0 ? "Now" : clock(nowSec + k * 60, d.timezone)}</td><td class="st">${status}</td><td class="pips">${pips}</td></tr>`;
+    }
+    return `<table class="board"><thead><tr><th>Time</th><th>Forecast</th><th>Level</th></tr></thead><tbody>${rows}</tbody></table>`;
+  },
+
+  /* 24 chunky bars, five minutes each. */
+  minute(nc) {
+    const W = 340, H = 170, T = 4, B = 24, n = 24, gap = 4;
+    const ph = H - T - B, bw = (W - gap * (n - 1)) / n;
+    let bars = "";
+    for (let i = 0; i < n; i++) {
+      const avg = avgOf(nc.curve.slice(i * 5, i * 5 + 5));
+      const wet = avg >= WET;
+      const h = wet ? Math.max(8, scale(avg) * ph) : 3;
+      bars += `<rect class="${wet ? "b wet" : "b"}" x="${f1(i * (bw + gap))}" y="${f1(T + ph - h)}" width="${f1(bw)}" height="${f1(h)}" rx="2"/>`;
+    }
+    const lab = [[0, "NOW", "start"], [W / 2, "1 HR", "middle"], [W, "2 HR", "end"]]
+      .map(([x, t, a]) => `<text x="${x}" y="${H - 4}" text-anchor="${a}">${t}</text>`).join("");
+    return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${bars}${lab}</svg>`;
+  },
+
+  /* Pencil sketch with hatching and a margin note pointing at the change. */
+  margin(nc, s) {
+    const W = 340, H = 180, L = 8, R = 8, T = 40, B = 26;
+    const pw = W - L - R, ph = H - T - B, base = T + ph;
+    const x = (k) => L + (k / WINDOW) * pw;
+    const wob = (k, amt) => (Math.sin(k * 1.7) + Math.sin(k * 0.53 + 1)) * amt;
+    const y = (r, k) => base - scale(r) * ph + (r >= 0.05 ? wob(k, 0.7) : 0);
+    let line = "";
+    for (let k = 0; k <= WINDOW; k += 3) line += `${f1(x(k))},${f1(y(nc.curve[k], k))} `;
+    const area = `M${x(0)},${base} L${line.trim().split(" ").join(" L")} L${x(WINDOW)},${base} Z`;
+    let baseline = "";
+    for (let k = 0; k <= WINDOW; k += 10) baseline += `${f1(x(k))},${f1(base + 2 + wob(k + 3, 0.6))} `;
+    const ticks = [[0, "now"], [30, "30"], [60, "1 hr"], [90, "90"], [120, "2 hrs"]]
+      .map(([k, t], i, arr) => `<text class="tk" x="${x(k)}" y="${H - 4}" text-anchor="${i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle"}">${t}</text>`).join("");
+    let note = "";
+    if (s.at != null) {
+      const ax = x(s.at), ay = y(nc.curve[s.at], s.at) - 6;
+      const tx = Math.min(Math.max(ax + 30, 70), W - 70);
+      const words = s.wet ? "dry from here!" : `${s.kind} starts here`;
+      note = `<text class="note" x="${f1(tx)}" y="22" text-anchor="middle">${words}</text>
+        <path class="arrow" d="M${f1(tx - 10)},28 Q${f1((tx + ax) / 2 - 12)},${f1((28 + ay) / 2 - 10)} ${f1(ax)},${f1(ay)}"/>
+        <path class="arrow" d="M${f1(ax - 6)},${f1(ay - 7)} L${f1(ax)},${f1(ay)} L${f1(ax + 7)},${f1(ay - 4)}"/>`;
+    } else if (s.wet) {
+      note = `<text class="note" x="${W / 2}" y="22" text-anchor="middle">wet the whole way →</text>`;
+    } else {
+      note = `<text class="note" x="${W / 2}" y="${base - 30}" text-anchor="middle">nothing. zip. nada.</text>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
+      <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><line class="hatch" x1="0" y1="0" x2="0" y2="6"/></pattern></defs>
+      <path class="hatched" d="${area}"/>
+      <polyline class="scrawl" points="${line}"/>
+      <polyline class="base" points="${baseline}"/>
+      ${ticks}${note}</svg>`;
+  },
+};
+
+function drawChart(nc, s, d, nowSec) {
   const el = $("chart");
-  el.classList.toggle("snow", nc.snow);
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
-    ${bands}
-    <line class="grid" x1="${L}" x2="${L + pw}" y1="${T + ph}" y2="${T + ph}"/>
-    ${ticks}
-    <path class="area" d="${area}"/>
-    <polyline class="edge" points="${pts}"/>
-    <circle class="now-dot" cx="${x(0)}" cy="${y(nc.curve[0])}" r="3.5"/>
-  </svg>`;
+  el.className = `chart chart-${state.design}${nc.snow ? " snow" : ""}`;
+  el.innerHTML = (CHARTS[state.design] || CHARTS.slate)(nc, s, d, nowSec);
+}
+
+function syncThemeColor() {
+  const bg = getComputedStyle(document.body).backgroundColor;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => { m.content = bg; });
+}
+
+function paintDesignList() {
+  $("designName").textContent = (DESIGNS.find((d) => d.id === state.design) || DESIGNS[0]).name;
+  $("designList").innerHTML = DESIGNS.map((d) => `
+    <button type="button" class="design-opt" role="radio" aria-checked="${d.id === state.design}" data-id="${d.id}">
+      <span class="dn">${d.name}</span><small>${d.blurb}</small>
+    </button>`).join("");
+}
+
+function applyDesign(id) {
+  if (!DESIGNS.some((d) => d.id === id)) id = "slate";
+  state.design = id;
+  document.documentElement.dataset.design = id;
+  try { localStorage.setItem("design", id); } catch { /* storage unavailable */ }
+  const link = $("designCss");
+  link.onload = syncThemeColor;
+  link.href = `designs/${id}.css`;
+  paintDesignList();
+  if (state.data) render();
 }
 
 function render() {
@@ -255,7 +399,10 @@ function render() {
   $("subline").textContent = s.sub;
   $("quip").textContent = quipFor(s.mood, d);
   $("quip").hidden = false;
-  drawChart(nc);
+  $("bigNum").innerHTML = [...String(s.num)].map((ch) => `<span class="ch">${ch}</span>`).join("");
+  $("bigLabel").textContent = [s.unit, s.label].filter(Boolean).join(" ");
+  document.documentElement.dataset.sky = s.sky;
+  drawChart(nc, s, d, nowSec);
   renderWhere(d);
 
   const deg = "°";
@@ -274,12 +421,13 @@ function render() {
     const pr = h.precipitation_probability[i] ?? 0;
     items.push(`<li class="hour${pr >= 40 ? " wet" : ""}">
       <span class="t">${hourLabel(h.time[i], d.timezone)}</span>
-      <span class="bar" title="${pr}% chance"><i style="height:${Math.max(pr, 3)}%"></i></span>
+      <span class="bar" title="${pr}% chance"><i style="--p:${Math.max(pr, 3)}%"></i></span>
       <span class="p">${pr}%</span>
       <span class="tmp">${Math.round(h.temperature_2m[i])}°</span>
     </li>`);
   }
   $("hours").innerHTML = items.join("");
+  syncThemeColor();
 }
 
 async function load() {
@@ -423,7 +571,16 @@ setInterval(() => { if (document.visibilityState === "visible") load(); }, 5 * 6
 // Re-render every minute so "starting in N min" counts down between fetches.
 setInterval(() => { if (state.data) render(); }, 60e3);
 
+// Design switcher (development setting). Also reachable as ?design=slate|aneroid|gate|minute|margin
+$("designBtn").addEventListener("click", () => { paintDesignList(); $("designSheet").showModal(); });
+$("designList").addEventListener("click", (e) => {
+  const b = e.target.closest(".design-opt");
+  if (b) { applyDesign(b.dataset.id); $("designSheet").close(); }
+});
+
 paintUnits();
+paintDesignList();
+try { localStorage.setItem("design", state.design); } catch { /* storage unavailable */ }
 if (state.loc) {
   load();
   if (state.loc.gps) useGeolocation(true); // quietly refresh GPS position

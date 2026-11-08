@@ -1,6 +1,7 @@
 // Caches the app shell so it opens instantly; forecast requests always go to the network.
-const CACHE = "raincheck-v2";
-const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest", "icon.svg"];
+const CACHE = "raincheck-v3";
+const SHELL = ["./", "index.html", "base.css", "app.js", "manifest.webmanifest", "icon.svg",
+  "designs/slate.css", "designs/aneroid.css", "designs/gate.css", "designs/minute.css", "designs/margin.css"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

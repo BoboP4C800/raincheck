@@ -1,0 +1,95 @@
+/* GATE CHANGE — an airport arrivals board. Deliberately one look (always dark, amber on black):
+   split-flap countdown tiles up top, then the 2 hours as board rows, hours as a departures list. */
+:root {
+  --bg: #0A0A0B; --surface: #151517; --tile: #202024; --ink: #F1EEE2; --muted: #8C8977; --line: #2A2A2E;
+  --amber: #FFB000; --rain: #FFB000; --on-rain: #111111; --snow: #CFE3FF;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-data: "JetBrains Mono", Consolas, ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+body { font: 500 17px/1.35 var(--font-body); letter-spacing: .02em; }
+.top { border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.place { font: 700 20px var(--font-display); text-transform: uppercase; letter-spacing: .08em; }
+.place svg { color: var(--amber); }
+.chip { background: var(--tile); border: 0; border-radius: 4px; padding: 6px 10px; font: 700 13px var(--font-data); color: var(--amber); }
+
+main { gap: 12px; }
+.hero, .card { background: var(--surface); border-radius: 6px; padding: 16px; }
+.hero { padding-top: 12px; }
+.hero::before {
+  content: "Next change"; display: block; margin-bottom: 8px;
+  font: 700 12px var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+}
+
+/* Split-flap countdown */
+.big { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.big-num { display: flex; gap: 5px; }
+.big-num .ch {
+  display: inline-grid; place-items: center; min-width: 54px; height: 78px; padding: 0 6px;
+  font: 700 58px/1 var(--font-data); color: var(--amber);
+  background: linear-gradient(var(--tile) 0 49%, #000 49% 51%, #26262B 51%);
+  border-radius: 6px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .5);
+}
+.big-label { font: 700 18px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: .12em; color: var(--ink); padding-bottom: 6px; max-width: 9em; }
+
+.headline { font: 700 24px/1.15 var(--font-display); text-transform: uppercase; letter-spacing: .03em; }
+.subline { margin-top: 4px; color: var(--muted); font-size: 17px; }
+.quip {
+  margin-top: 12px; padding: 8px 10px; border-radius: 4px; background: var(--tile);
+  font: 500 15px/1.35 var(--font-body); color: var(--ink);
+}
+.quip::before { content: "Notice  "; font-weight: 700; color: var(--amber); letter-spacing: .14em; text-transform: uppercase; }
+
+.card-head h2 { font: 700 13px var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.meta { font: 500 11px var(--font-data); color: var(--muted); }
+
+/* Board rows */
+.board { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 14px; }
+.board th { text-align: left; font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); padding: 0 4px 6px; }
+.board td { padding: 9px 4px; border-top: 1px solid var(--line); }
+.board .tm { width: 6.5em; color: var(--muted); white-space: nowrap; }
+.board .st { text-transform: uppercase; letter-spacing: .04em; }
+.board tr.wet .st { color: var(--amber); }
+.board .pips { width: 4.2em; white-space: nowrap; text-align: right; }
+.board .pips i { display: inline-block; width: 9px; height: 14px; margin-left: 3px; border-radius: 2px; background: var(--line); vertical-align: middle; }
+.board .pips i.on { background: var(--amber); }
+.chart.snow .board tr.wet .st { color: var(--snow); }
+.chart.snow .board .pips i.on { background: var(--snow); }
+
+.now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--surface); border-radius: 6px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 700 26px var(--font-data); color: var(--ink); white-space: nowrap; }
+.stat .d { font-size: 14px; color: var(--amber); text-transform: uppercase; letter-spacing: .06em; }
+
+/* Hours as a departures list */
+.hours { display: grid; gap: 0; }
+.hour {
+  display: grid; grid-template-columns: 3.6em minmax(0, 1fr) 3.2em 2.8em; gap: 10px; align-items: center;
+  padding: 7px 0; border-top: 1px solid var(--line); font-family: var(--font-data); font-size: 14px;
+}
+.hour .t { color: var(--muted); }
+.bar { height: 8px; border-radius: 2px; background: var(--tile); }
+.bar i { inset: 0 auto 0 0; width: var(--p); background: var(--muted); }
+.hour.wet .bar i { background: var(--amber); }
+.hour .p { text-align: right; color: var(--muted); }
+.hour.wet .p { color: var(--amber); }
+.hour .tmp { text-align: right; }
+
+.where dt { font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.where dd { font-family: var(--font-data); font-size: 13px; }
+.where .note { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.foot { font-size: 13px; color: var(--muted); margin: 0; }
+.foot a { color: var(--amber); }
+.design-btn { background: var(--amber); color: #111; }
+.design-opt[aria-checked="true"] { border-color: var(--amber); }
+#q { background: var(--tile); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .big-num .ch { animation: flap .45s steps(3) both; }
+  .big-num .ch:nth-child(2) { animation-delay: .08s; }
+  .big-num .ch:nth-child(3) { animation-delay: .16s; }
+  @keyframes flap { 0% { transform: scaleY(.15); } 60% { transform: scaleY(1.05); } 100% { transform: none; } }
+}

@@ -1,0 +1,101 @@
+/* Shared by all five designs: reset, page frame, sheets, and the design switcher.
+   Every design stylesheet (designs/*.css) defines the same tokens:
+   --bg --surface --ink --muted --line --rain --on-rain --font-display --font-body --font-data */
+:root {
+  --bg: #EEF2F5; --surface: #FFFFFF; --ink: #14202B; --muted: #5B6B78; --line: #D6DEE5;
+  --rain: #2F6FD6; --on-rain: #FFFFFF;
+  --font-display: system-ui, sans-serif; --font-body: system-ui, sans-serif; --font-data: ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.5 var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+button, input { font: inherit; color: inherit; }
+a { color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--rain); outline-offset: 2px; border-radius: 4px; }
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  padding-block: calc(env(safe-area-inset-top, 0px) + 12px) calc(env(safe-area-inset-bottom, 0px) + 80px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { display: grid; gap: 16px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.place { display: inline-flex; align-items: center; gap: 6px; min-width: 0; background: none; border: 0; padding: 8px 0; cursor: pointer; }
+.place span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip { cursor: pointer; }
+.big { display: none; }
+.card { min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.card-head h2 { margin: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.hours-wrap { overflow-x: auto; scrollbar-width: none; }
+.hours-wrap::-webkit-scrollbar { display: none; }
+.hours { list-style: none; margin: 0; padding: 0; }
+.bar { position: relative; overflow: hidden; display: block; }
+.bar i { position: absolute; }
+.where dl { margin: 0; display: grid; gap: 10px; }
+.where dl > div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.where dd { margin: 0; overflow-wrap: anywhere; }
+.headline, .subline, .quip { margin: 0; }
+
+/* Sheets (location search, design picker) */
+.sheet {
+  border: 0; padding: 0; width: 100%; max-width: 520px;
+  margin: auto auto 0; border-radius: 20px 20px 0 0;
+  background: var(--surface); color: var(--ink);
+  max-height: 85vh;
+}
+.sheet::backdrop { background: rgba(5, 10, 15, .5); }
+.sheet-inner {
+  display: grid; gap: 12px;
+  padding-block: 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-family: var(--font-body);
+}
+.sheet-head { display: flex; justify-content: space-between; align-items: center; }
+.sheet-head h2 { margin: 0; font: 700 22px var(--font-display); }
+.x { background: none; border: 0; font-size: 28px; line-height: 1; padding: 4px 8px; cursor: pointer; color: var(--muted); }
+.primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--rain); color: var(--on-rain); border: 0; border-radius: 12px;
+  padding: 12px 16px; font-weight: 600; cursor: pointer;
+}
+.geo-msg { margin: 0; font-size: 13px; color: var(--muted); }
+.lbl { font-size: 13px; color: var(--muted); }
+#q { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; }
+.results { list-style: none; margin: 0; padding: 0; display: grid; }
+.results button {
+  width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line);
+  padding: 12px 2px; cursor: pointer; display: grid;
+}
+.results small { color: var(--muted); }
+
+/* Design switcher (development setting) */
+.design-btn {
+  position: fixed; z-index: 20;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: var(--ink); color: var(--bg);
+  border: 0; border-radius: 999px; padding: 9px 14px;
+  font: 600 13px/1 system-ui, sans-serif; letter-spacing: 0; text-transform: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .25); cursor: pointer;
+}
+.design-list { display: grid; gap: 8px; }
+.design-opt {
+  display: grid; gap: 2px; text-align: left; width: 100%;
+  background: var(--bg); border: 2px solid transparent; border-radius: 12px;
+  padding: 12px 14px; cursor: pointer;
+}
+.design-opt .dn { font: 700 16px var(--font-body); }
+.design-opt small { color: var(--muted); font-size: 13px; }
+.design-opt[aria-checked="true"] { border-color: var(--rain); }
