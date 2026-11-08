@@ -8,7 +8,8 @@
   "scripts": {
     "build:web": "node scripts/build-web.mjs",
     "sync": "npm run build:web && npx cap sync android",
-    "apk:debug": "npm run sync && cd android && gradlew.bat assembleDebug"
+    "apk:debug": "npm run sync && cd android && gradlew.bat assembleDebug",
+    "install:phone": "powershell -ExecutionPolicy Bypass -File scripts/install-termux.ps1"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
