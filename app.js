@@ -601,6 +601,8 @@ if (state.loc) {
   useGeolocation(false);
 }
 
-if ("serviceWorker" in navigator && location.protocol !== "file:") {
+// The offline cache is for the website. In the Android app the files are already on the device.
+const isNativeApp = !!window.Capacitor?.isNativePlatform?.();
+if ("serviceWorker" in navigator && location.protocol !== "file:" && !isNativeApp) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }

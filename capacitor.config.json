@@ -1,0 +1,8 @@
+{
+  "appId": "com.halfphase.raincheck",
+  "appName": "Raincheck",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0C141B"
+  }
+}
