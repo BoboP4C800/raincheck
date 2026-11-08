@@ -234,8 +234,8 @@ const f1 = (n) => n.toFixed(1);
 
 /* Each design draws the 2-hour nowcast its own way. All return markup for #chart. */
 const CHARTS = {
-  slate(nc) {
-    const W = 340, H = 150, L = 6, R = 58, T = 8, B = 22;
+  slate(nc, s, d, nowSec, size) {
+    const W = size.w, H = size.h, L = 6, R = 58, T = 8, B = 22;
     const pw = W - L - R, ph = H - T - B;
     const y = (r) => T + ph - scale(r) * ph;
     const x = (k) => L + (k / WINDOW) * pw;
@@ -306,8 +306,8 @@ const CHARTS = {
   },
 
   /* 24 chunky bars, five minutes each. */
-  minute(nc) {
-    const W = 340, H = 170, T = 4, B = 24, n = 24, gap = 4;
+  minute(nc, s, d, nowSec, size) {
+    const W = size.w, H = size.h, T = 4, B = 24, n = 24, gap = 4;
     const ph = H - T - B, bw = (W - gap * (n - 1)) / n;
     let bars = "";
     for (let i = 0; i < n; i++) {
@@ -322,8 +322,8 @@ const CHARTS = {
   },
 
   /* Pencil sketch with hatching and a margin note pointing at the change. */
-  margin(nc, s) {
-    const W = 340, H = 180, L = 8, R = 8, T = 40, B = 26;
+  margin(nc, s, d, nowSec, size) {
+    const W = size.w, H = size.h, L = 8, R = 8, T = 34, B = 24;
     const pw = W - L - R, ph = H - T - B, base = T + ph;
     const x = (k) => L + (k / WINDOW) * pw;
     const wob = (k, amt) => (Math.sin(k * 1.7) + Math.sin(k * 0.53 + 1)) * amt;
@@ -360,8 +360,17 @@ const CHARTS = {
 function drawChart(nc, s, d, nowSec) {
   const el = $("chart");
   el.className = `chart chart-${state.design}${nc.snow ? " snow" : ""}`;
-  el.innerHTML = (CHARTS[state.design] || CHARTS.slate)(nc, s, d, nowSec);
+  // Line and bar charts are drawn at the exact pixel size of the space the layout gives them,
+  // so they fill it on any screen height without stretching their text.
+  const size = { w: Math.max(200, Math.round(el.clientWidth)), h: Math.max(90, Math.round(el.clientHeight)) };
+  el.innerHTML = (CHARTS[state.design] || CHARTS.slate)(nc, s, d, nowSec, size);
 }
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (state.data) render(); }, 150);
+});
 
 function syncThemeColor() {
   const bg = getComputedStyle(document.body).backgroundColor;
@@ -488,7 +497,6 @@ function fmtDist(km) {
 function renderWhere(d) {
   const L = state.loc;
   if (!L) return;
-  $("where").hidden = false;
   $("whereAddr").textContent = L.address || L.name;
   $("whereHow").textContent = L.gps
     ? (L.acc ? `GPS, accurate to within ${fmtDist(L.acc / 1000)}` : "GPS")
@@ -573,6 +581,7 @@ setInterval(() => { if (state.data) render(); }, 60e3);
 
 // Design switcher (development setting). Also reachable as ?design=slate|aneroid|gate|minute|margin
 $("designBtn").addEventListener("click", () => { paintDesignList(); $("designSheet").showModal(); });
+$("whereBtn").addEventListener("click", () => $("whereSheet").showModal());
 $("designList").addEventListener("click", (e) => {
   const b = e.target.closest(".design-opt");
   if (b) { applyDesign(b.dataset.id); $("designSheet").close(); }

@@ -1,5 +1,6 @@
 /* GATE CHANGE — an airport arrivals board. Deliberately one look (always dark, amber on black):
-   split-flap countdown tiles up top, then the 2 hours as board rows, hours as a departures list. */
+   split-flap countdown tiles up top, then the 2 hours as board rows that stretch to fill the screen,
+   the 12 hours as a strip of board tiles. */
 :root {
   --bg: #0A0A0B; --surface: #151517; --tile: #202024; --ink: #F1EEE2; --muted: #8C8977; --line: #2A2A2E;
   --amber: #FFB000; --rain: #FFB000; --on-rain: #111111; --snow: #CFE3FF;
@@ -9,81 +10,80 @@
   color-scheme: dark;
 }
 
-body { font: 500 17px/1.35 var(--font-body); letter-spacing: .02em; }
-.top { border-bottom: 1px solid var(--line); padding-bottom: 8px; }
-.place { font: 700 20px var(--font-display); text-transform: uppercase; letter-spacing: .08em; }
+body { font: 500 17px/1.3 var(--font-body); letter-spacing: .02em; }
+.top { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.place { font: 700 20px var(--font-display); text-transform: uppercase; letter-spacing: .08em; padding: 4px 0; }
 .place svg { color: var(--amber); }
-.chip { background: var(--tile); border: 0; border-radius: 4px; padding: 6px 10px; font: 700 13px var(--font-data); color: var(--amber); }
+.chip { background: var(--tile); border: 0; border-radius: 4px; padding: 5px 10px; font: 700 13px var(--font-data); color: var(--amber); }
 
-main { gap: 12px; }
-.hero, .card { background: var(--surface); border-radius: 6px; padding: 16px; }
-.hero { padding-top: 12px; }
-.hero::before {
-  content: "Next change"; display: block; margin-bottom: 8px;
-  font: 700 12px var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
-}
+main { gap: 8px; }
+.hero, .card { background: var(--surface); border-radius: 6px; padding: 10px 12px; }
 
-/* Split-flap countdown */
-.big { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.big-num { display: flex; gap: 5px; }
+/* Split-flap countdown, label beside it */
+.big { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.big-num { display: flex; gap: 4px; }
 .big-num .ch {
-  display: inline-grid; place-items: center; min-width: 54px; height: 78px; padding: 0 6px;
-  font: 700 58px/1 var(--font-data); color: var(--amber);
+  display: inline-grid; place-items: center; min-width: 40px; height: clamp(48px, 7.5dvh, 66px); padding: 0 5px;
+  font: 700 clamp(36px, 5.8dvh, 50px)/1 var(--font-data); color: var(--amber);
   background: linear-gradient(var(--tile) 0 49%, #000 49% 51%, #26262B 51%);
-  border-radius: 6px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .5);
+  border-radius: 5px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .5);
 }
-.big-label { font: 700 18px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: .12em; color: var(--ink); padding-bottom: 6px; max-width: 9em; }
+.big-label { font: 700 17px/1.05 var(--font-display); text-transform: uppercase; letter-spacing: .12em; max-width: 8em; }
+.big-label::before {
+  content: "Next change"; display: block; margin-bottom: 3px;
+  font-size: 11px; letter-spacing: .2em; color: var(--muted);
+}
 
-.headline { font: 700 24px/1.15 var(--font-display); text-transform: uppercase; letter-spacing: .03em; }
-.subline { margin-top: 4px; color: var(--muted); font-size: 17px; }
-.quip {
-  margin-top: 12px; padding: 8px 10px; border-radius: 4px; background: var(--tile);
-  font: 500 15px/1.35 var(--font-body); color: var(--ink);
-}
+.headline { font: 700 20px/1.12 var(--font-display); text-transform: uppercase; letter-spacing: .03em; }
+.subline { margin-top: 2px; color: var(--muted); font-size: 15px; }
+.quip { margin-top: 6px; padding: 5px 8px; border-radius: 4px; background: var(--tile); font: 500 14px/1.3 var(--font-body); }
 .quip::before { content: "Notice  "; font-weight: 700; color: var(--amber); letter-spacing: .14em; text-transform: uppercase; }
 
-.card-head h2 { font: 700 13px var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
-.meta { font: 500 11px var(--font-data); color: var(--muted); }
+.card-head { margin-bottom: 2px; }
+.card-head h2 { font: 700 12px var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.meta { font: 500 10px var(--font-data); color: var(--muted); }
 
-/* Board rows */
-.board { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 14px; }
-.board th { text-align: left; font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); padding: 0 4px 6px; }
-.board td { padding: 9px 4px; border-top: 1px solid var(--line); }
+/* Board rows stretch to share the leftover height, and never get cut off: on a very short
+   screen the card keeps its full height and the page scrolls a little instead. */
+main > .nowcast { min-height: auto; }
+.nowcast .chart-gate { min-height: auto; }
+.board { width: 100%; height: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 12.5px; line-height: 1.2; }
+.board thead tr { height: 1px; }
+.board th { text-align: left; font: 700 10px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); padding: 0 4px 2px; }
+.board td { padding: 1px 4px; border-top: 1px solid var(--line); }
 .board .tm { width: 6.5em; color: var(--muted); white-space: nowrap; }
 .board .st { text-transform: uppercase; letter-spacing: .04em; }
 .board tr.wet .st { color: var(--amber); }
 .board .pips { width: 4.2em; white-space: nowrap; text-align: right; }
-.board .pips i { display: inline-block; width: 9px; height: 14px; margin-left: 3px; border-radius: 2px; background: var(--line); vertical-align: middle; }
+.board .pips i { display: inline-block; width: 8px; height: 12px; margin-left: 3px; border-radius: 2px; background: var(--line); vertical-align: middle; }
 .board .pips i.on { background: var(--amber); }
 .chart.snow .board tr.wet .st { color: var(--snow); }
 .chart.snow .board .pips i.on { background: var(--snow); }
 
-.now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.stat { background: var(--surface); border-radius: 6px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
-.stat .k { font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
-.stat .v { font: 700 26px var(--font-data); color: var(--ink); white-space: nowrap; }
-.stat .d { font-size: 14px; color: var(--amber); text-transform: uppercase; letter-spacing: .06em; }
+.now { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.stat { background: var(--surface); border-radius: 6px; padding: 6px 8px; display: grid; min-width: 0; }
+.stat .k { font: 700 10px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat .v { font: 700 18px var(--font-data); white-space: nowrap; }
+.stat .d { font-size: 12px; color: var(--amber); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Hours as a departures list */
-.hours { display: grid; gap: 0; }
-.hour {
-  display: grid; grid-template-columns: 3.6em minmax(0, 1fr) 3.2em 2.8em; gap: 10px; align-items: center;
-  padding: 7px 0; border-top: 1px solid var(--line); font-family: var(--font-data); font-size: 14px;
-}
-.hour .t { color: var(--muted); }
-.bar { height: 8px; border-radius: 2px; background: var(--tile); }
+/* 12 hours as a strip of board tiles */
+.hours-wrap { margin: 0 -12px; padding: 0 12px; }
+.hours { display: grid; grid-auto-flow: column; grid-auto-columns: 50px; gap: 4px; }
+.hour { display: grid; justify-items: center; gap: 3px; padding: 5px 0; background: var(--tile); border-radius: 4px; font-family: var(--font-data); }
+.hour .t { font-size: 11px; color: var(--muted); }
+.bar { width: 30px; height: 4px; border-radius: 2px; background: var(--line); }
 .bar i { inset: 0 auto 0 0; width: var(--p); background: var(--muted); }
 .hour.wet .bar i { background: var(--amber); }
-.hour .p { text-align: right; color: var(--muted); }
+.hour .p { font-size: 11px; color: var(--muted); }
 .hour.wet .p { color: var(--amber); }
-.hour .tmp { text-align: right; }
+.hour .tmp { font-size: 14px; font-weight: 700; }
 
 .where dt { font: 700 11px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 .where dd { font-family: var(--font-data); font-size: 13px; }
-.where .note { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
-.foot { font-size: 13px; color: var(--muted); margin: 0; }
-.foot a { color: var(--amber); }
-.design-btn { background: var(--amber); color: #111; }
+.where .note { font-size: 14px; }
+.where .note a { color: var(--amber); }
+.pill { background: var(--amber); color: #111; border-radius: 4px; font-family: var(--font-display); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px; }
+#whereBtn { color: var(--amber); box-shadow: inset 0 0 0 1.5px var(--amber); }
 .design-opt[aria-checked="true"] { border-color: var(--amber); }
 #q { background: var(--tile); }
 

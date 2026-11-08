@@ -24,12 +24,13 @@ a { color: var(--rain); }
 .place { font-weight: 600; font-size: 16px; }
 .chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font: 500 13px var(--font-data); }
 
-.hero { padding-block: 12px 4px; }
-.headline { font: 700 clamp(30px, 9vw, 40px)/1.08 var(--font-display); letter-spacing: -.02em; text-wrap: balance; }
-.subline { margin-top: 10px; color: var(--muted); font-size: 16px; }
-.quip { margin-top: 12px; font-size: 15px; font-style: italic; opacity: .85; text-wrap: pretty; }
+.hero { padding-block: 4px 0; }
+.headline { font: 700 clamp(26px, 4.6dvh, 40px)/1.08 var(--font-display); letter-spacing: -.02em; text-wrap: balance; }
+.subline { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.quip { margin-top: 6px; font-size: 14px; font-style: italic; opacity: .85; text-wrap: pretty; }
 
-.card { background: var(--surface); border-radius: 18px; padding: 16px; }
+.card { background: var(--surface); border-radius: 18px; padding: 12px 14px; }
+.card-head { margin-bottom: 4px; }
 .card-head h2 { font: 600 13px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .meta { font: 400 12px var(--font-data); color: var(--muted); }
 
@@ -49,12 +50,12 @@ a { color: var(--rain); }
 .stat .d { font-size: 12px; color: var(--muted); }
 @media (max-width: 360px) { .now { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; } }
 
-.hours-wrap { margin: 0 -16px; padding: 0 16px; }
+.hours-wrap { margin: 0 -14px; padding: 0 14px; }
 .hours { display: grid; grid-auto-flow: column; grid-auto-columns: 52px; gap: 6px; }
-.hour { display: grid; justify-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.hour { display: grid; justify-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
 .hour .t { font: 400 12px var(--font-data); color: var(--muted); }
 .hour .tmp { font: 500 15px var(--font-data); }
-.bar { width: 10px; height: 56px; border-radius: 6px; background: var(--line); }
+.bar { width: 10px; height: 38px; border-radius: 6px; background: var(--line); }
 .bar i { inset: auto 0 0 0; height: var(--p); background: var(--rain); border-radius: 6px; }
 .hour .p { font: 400 11px var(--font-data); color: var(--muted); }
 .hour.wet .p { color: var(--rain); font-weight: 500; }

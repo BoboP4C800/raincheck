@@ -30,16 +30,18 @@ body { font: 400 15px/1.55 var(--font-body); }
   border-radius: 999px; padding: 4px 10px; font: 500 12px var(--font-body);
 }
 
-main { display: flex; flex-direction: column; gap: 24px; }
-.nowcast { order: 1; } .hero { order: 2; } .now { order: 3; } .hours-card { order: 4; } .where { order: 5; } .foot { order: 6; }
+main { gap: 12px; }
+.nowcast { order: 1; } .hero { order: 2; } .now { order: 3; } .hours-card { order: 4; }
 
-/* The dial */
+/* The dial: as large as the leftover height allows, always a circle */
 .nowcast { background: none; padding: 0; }
-.nowcast .card-head { justify-content: center; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 12px; }
+.nowcast .card-head { justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 6px; }
 .nowcast h2 { font: 500 11px var(--font-body); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 .nowcast .meta { font: italic 400 13px var(--font-display); color: var(--muted); }
-.chart-aneroid {
-  width: min(100%, 340px); margin: 0 auto; aspect-ratio: 1; border-radius: 50%; padding: 10px;
+.chart-aneroid { container-type: size; display: grid; place-items: center; }
+.nowcast .chart-aneroid > svg {
+  width: min(100cqw, 100cqh, 340px); height: min(100cqw, 100cqh, 340px);
+  border-radius: 50%; padding: 8px;
   background: radial-gradient(circle at 50% 40%, var(--face), var(--surface) 70%);
   border: 2px solid var(--brass);
   box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 6px var(--brass), 0 10px 30px rgba(0, 0, 0, .12);
@@ -57,26 +59,28 @@ main { display: flex; flex-direction: column; gap: 24px; }
 .chart-aneroid .unit { font: 500 9.5px var(--font-body); letter-spacing: .16em; fill: var(--muted); }
 
 .hero { text-align: center; }
-.headline { font: 600 italic clamp(24px, 7vw, 30px)/1.2 var(--font-display); text-wrap: balance; }
-.subline { margin-top: 8px; color: var(--muted); }
-.quip { margin: 14px auto 0; max-width: 30em; font-size: 14px; color: var(--brass); letter-spacing: .02em; }
+.headline { font: 600 italic clamp(21px, 3.5dvh, 30px)/1.18 var(--font-display); text-wrap: balance; }
+.subline { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.quip { margin: 6px auto 0; max-width: 30em; font-size: 13px; color: var(--brass); letter-spacing: .02em; }
 .quip::before, .quip::after { content: " ~ "; }
 
 .now { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); text-align: center; }
 .stat { display: grid; gap: 2px; padding: 4px 6px; min-width: 0; }
 .stat + .stat { border-left: 1px solid var(--line); }
 .stat .k { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
-.stat .v { font: 500 24px/1.2 var(--font-display); font-variant-numeric: lining-nums; white-space: nowrap; }
+.stat .v { font: 500 22px/1.15 var(--font-display); font-variant-numeric: lining-nums; white-space: nowrap; }
 .stat .d { font-size: 11px; color: var(--muted); }
 @media (max-width: 360px) { .now { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; } .stat:nth-child(3) { border-left: 0; } }
 
-.card:not(.nowcast) { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px; }
-.card:not(.nowcast) h2 { font: 500 11px var(--font-body); letter-spacing: .26em; text-transform: uppercase; color: var(--brass); }
+.card:not(.nowcast) { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 12px 16px; }
+.card:not(.nowcast) h2, .where .sheet-head h2 { font: 500 11px var(--font-body); letter-spacing: .26em; text-transform: uppercase; color: var(--brass); }
 .meta { font-size: 12px; color: var(--muted); }
 
-.hours-wrap { margin: 0 -18px; padding: 0 18px; }
+.hours-wrap { margin: 0 -16px; padding: 0 16px; }
 .hours { display: grid; grid-auto-flow: column; grid-auto-columns: 50px; gap: 6px; }
-.hour { display: grid; justify-items: center; gap: 6px; }
+.hour { display: grid; justify-items: center; gap: 4px; }
+.pill { background: var(--brass); color: var(--bg); }
+#whereBtn { color: var(--brass); box-shadow: inset 0 0 0 1.5px var(--brass); }
 .hour .t { font-size: 11px; letter-spacing: .06em; color: var(--muted); }
 .bar { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--face); }
 .bar i { inset: 0; border-radius: 50%; background: conic-gradient(var(--rain) var(--p), transparent 0); }
