@@ -557,6 +557,137 @@ async function search(q) {
   } catch { list.innerHTML = `<li class="geo-msg">Search isn't reachable right now.</li>`; }
 }
 
+/* ---------- radar ----------
+   Map: Leaflet (loaded only when the radar is first opened) with CARTO basemap tiles.
+   Radar: RainViewer's free feed, 13 frames covering the past 2 hours at 10-minute steps.
+   RainViewer serves radar tiles up to zoom 7; closer zooms enlarge those tiles. */
+const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
+const RADAR_ZOOM_MAX = 7;
+const radar = { map: null, base: null, baseDark: null, marker: null, layers: [], frames: [], idx: 0, timer: null, hold: 0, playing: true, fetchedAt: 0 };
+
+let leafletPromise;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = LEAFLET + "leaflet.min.css";
+    document.head.append(css);
+    const js = document.createElement("script");
+    js.src = LEAFLET + "leaflet.min.js";
+    js.onload = resolve;
+    js.onerror = () => { leafletPromise = null; reject(new Error("map library failed to load")); };
+    document.head.append(js);
+  });
+  return leafletPromise;
+}
+
+function pageIsDark() {
+  const m = getComputedStyle(document.body).backgroundColor.match(/\d+(\.\d+)?/g);
+  if (!m) return false;
+  const [r, g, b] = m.map(Number);
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.45;
+}
+
+function radarStatus(text) { $("radarTime").textContent = text; }
+
+function showFrame(i) {
+  if (!radar.layers.length) return;
+  radar.layers[radar.idx]?.setOpacity(0);
+  radar.idx = (i + radar.layers.length) % radar.layers.length;
+  radar.layers[radar.idx].setOpacity(0.78);
+  $("radarSlider").value = radar.idx;
+  const f = radar.frames[radar.idx];
+  const tz = state.data?.timezone;
+  const ago = Math.round((Date.now() / 1000 - f.time) / 60);
+  const last = radar.idx === radar.frames.length - 1;
+  radarStatus(`${clock(f.time, tz)} · ${last ? "latest" : ago + " min ago"}`);
+}
+
+function setPlaying(on) {
+  radar.playing = on;
+  clearInterval(radar.timer);
+  $("radarPlay").setAttribute("aria-label", on ? "Pause" : "Play");
+  $("radarPlayIcon").setAttribute("d", on ? "M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" : "M8 5v14l11-7z");
+  if (!on) return;
+  radar.timer = setInterval(() => {
+    // Linger on the latest frame so "now" is easy to read, then loop.
+    if (radar.idx === radar.frames.length - 1 && radar.hold < 3) { radar.hold++; return; }
+    radar.hold = 0;
+    showFrame(radar.idx + 1);
+  }, 550);
+}
+
+async function openRadar() {
+  if (!state.loc) return;
+  $("radarSheet").showModal();
+  radarStatus("Loading radar…");
+  try {
+    await loadLeaflet();
+    const L = window.L;
+    const { lat, lon } = state.loc;
+
+    if (!radar.map) {
+      radar.map = L.map("radarMap", { minZoom: 3, maxZoom: 10, zoomSnap: 0.5 });
+      radar.map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
+    }
+    radar.map.setView([lat, lon], radar.map._loaded ? radar.map.getZoom() : 7);
+
+    // Basemap follows the design's light/dark look.
+    const dark = pageIsDark();
+    // Esri gray canvas: muted base under the radar, place names on a separate layer above it.
+    if (!radar.base || radar.baseDark !== dark) {
+      radar.base?.remove();
+      radar.labels?.remove();
+      const tone = dark ? "Dark" : "Light";
+      const esri = (kind) => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${tone}_Gray_${kind}/MapServer/tile/{z}/{y}/{x}`;
+      radar.base = L.tileLayer(esri("Base"), {
+        maxZoom: 10, zIndex: 1,
+        attribution: 'Map &copy; <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>, HERE, Garmin, &copy; OpenStreetMap contributors',
+      }).addTo(radar.map);
+      radar.labels = L.tileLayer(esri("Reference"), { maxZoom: 10, zIndex: 3 }).addTo(radar.map);
+      radar.baseDark = dark;
+    }
+
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--rain").trim() || "#2F6FD6";
+    radar.marker?.remove();
+    radar.marker = L.circleMarker([lat, lon], { radius: 7, weight: 3, color: dark ? "#ffffff" : "#111111", fillColor: accent, fillOpacity: 1, interactive: false }).addTo(radar.map);
+
+    // Radar frames: refetch the list if it's more than 5 minutes old.
+    if (Date.now() - radar.fetchedAt > 5 * 60e3) {
+      const r = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+      if (!r.ok) throw new Error("radar list " + r.status);
+      const j = await r.json();
+      radar.layers.forEach((l) => l.remove());
+      radar.frames = [...(j.radar?.past || []), ...(j.radar?.nowcast || [])];
+      if (!radar.frames.length) throw new Error("no frames");
+      radar.layers = radar.frames.map((f, i) => L.tileLayer(`${j.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {
+        opacity: 0, zIndex: 2, maxNativeZoom: RADAR_ZOOM_MAX, maxZoom: 10,
+        attribution: i === 0 ? 'Radar &copy; <a href="https://www.rainviewer.com" target="_blank" rel="noopener">RainViewer</a>' : "",
+      }).addTo(radar.map));
+      radar.fetchedAt = Date.now();
+      $("radarSlider").max = radar.frames.length - 1;
+      radar.idx = radar.frames.length - 1;
+    }
+
+    // The dialog was hidden when Leaflet measured it; re-measure now that it's on screen.
+    requestAnimationFrame(() => radar.map.invalidateSize());
+    showFrame(radar.frames.length - 1);
+    radar.hold = 0;
+    setPlaying(true);
+  } catch (e) {
+    radarStatus("Radar isn't reachable right now. Check your connection and try again.");
+  }
+}
+
+function closeRadar() { setPlaying(false); if ($("radarSheet").open) $("radarSheet").close(); }
+
+$("radarBtn").addEventListener("click", openRadar);
+$("radarClose").addEventListener("click", closeRadar);
+$("radarSheet").addEventListener("close", () => setPlaying(false));
+$("radarPlay").addEventListener("click", () => setPlaying(!radar.playing));
+$("radarSlider").addEventListener("input", (e) => { setPlaying(false); showFrame(Number(e.target.value)); });
+
 /* ---------- wiring ---------- */
 $("placeBtn").addEventListener("click", openSheet);
 $("geoBtn").addEventListener("click", () => useGeolocation(true));

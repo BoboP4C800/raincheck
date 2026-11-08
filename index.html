@@ -48,6 +48,7 @@
       <div class="card-head">
         <h2 id="ncTitle">Next 2 hours</h2>
         <span class="meta" id="updated"></span>
+        <button id="radarBtn" class="radar-btn" type="button" aria-haspopup="dialog">Radar</button>
       </div>
       <div id="chart" class="chart" role="img" aria-label="Precipitation intensity for the next two hours"></div>
     </section>
@@ -71,6 +72,27 @@
     <button id="designBtn" class="pill" type="button" aria-haspopup="dialog">Design: <span id="designName">Slate</span></button>
   </nav>
 </div>
+
+<dialog id="radarSheet" class="radar-sheet" aria-labelledby="radarTitle">
+  <div class="radar-wrap">
+    <div class="radar-head">
+      <h2 id="radarTitle">Radar</h2>
+      <span id="radarTime" class="radar-time" aria-live="polite"></span>
+      <button id="radarClose" class="x" type="button" aria-label="Close radar">×</button>
+    </div>
+    <div id="radarMap" class="radar-map"></div>
+    <div class="radar-controls">
+      <button id="radarPlay" class="radar-play" type="button" aria-label="Pause">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path id="radarPlayIcon" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+      </button>
+      <input id="radarSlider" type="range" min="0" max="12" step="1" value="12" aria-label="Radar frame time">
+    </div>
+    <div class="radar-foot">
+      <div class="radar-legend" aria-hidden="true"><span>Light</span><i></i><span>Heavy</span></div>
+      <p class="radar-note">Radar from the past 2 hours, every 10 minutes. Watch which way the rain is moving to see what's headed for the dot.</p>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="whereSheet" class="sheet" aria-labelledby="whereTitle">
   <form method="dialog" class="sheet-inner where" id="where">

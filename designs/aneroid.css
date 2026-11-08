@@ -80,6 +80,8 @@ main { gap: 12px; }
 .hours { display: grid; grid-auto-flow: column; grid-auto-columns: 50px; gap: 6px; }
 .hour { display: grid; justify-items: center; gap: 4px; }
 .pill { background: var(--brass); color: var(--bg); }
+.radar-btn { margin-left: 0; background: none; color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); font: 500 10px/1 var(--font-body); letter-spacing: .2em; text-transform: uppercase; padding: 5px 10px; }
+.radar-head h2 { font-style: italic; }
 #whereBtn { color: var(--brass); box-shadow: inset 0 0 0 1.5px var(--brass); }
 .hour .t { font-size: 11px; letter-spacing: .06em; color: var(--muted); }
 .bar { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--face); }
