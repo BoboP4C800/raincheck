@@ -140,28 +140,65 @@ const QUIPS = {
   thunder: ["Thunder possible. Golf can wait.", "The sky is clearing its throat. Loudly."],
   fog: ["Foggy. Visibility is more of a suggestion today.", "Peak mysterious-movie-opening weather."],
   windy: ["Breezy enough to restyle your hair for free.", "Hold onto your hat. Literally."],
-  hot: ["Hot one. Hydrate like it's your job.", "The sidewalk could cook breakfast."],
-  cold: ["Dry but cold. Your nose will know first.", "Layers. All of them."],
+  icy: ["Rain at freezing temperatures. Sidewalks are now ice rinks.", "Freezing rain: walk like you're carrying soup."],
+
+  /* Temperature variants, looked up as "<situation>:<band>" before the plain situation.
+     Bands come from the feels-like temperature: frigid ≤20°F, cold ≤40°F, mild, warm ≥80°F, hot ≥90°F.
+     A missing "frigid" variant falls back to "cold", and a missing "hot" one to "warm". */
+  "dry:frigid": ["Dry, but the air has teeth.", "Clear and frigid. Your breath gets its own scene."],
+  "dry:cold": ["Dry but cold. Your nose will know first.", "No rain, just a strong case for gloves.", "Layers. All of them."],
+  "dry:warm": ["Dry and warm. Patio weather, officially.", "No rain and plenty of excuses to be outside."],
+  "dry:hot": ["Hot one. Hydrate like it's your job.", "Dry and hot. The sidewalk could cook breakfast."],
+  "dryLater:cold": ["Dry for now. Cold rain later, so plan accordingly.", "Enjoy the break. Cold and wet is on the way."],
+  "dryLater:warm": ["Dry for now. A storm may drop by to cool things off.", "Warm and dry for the moment. The clouds are plotting."],
+  "startLight:cold": ["Cold drizzle: weather being passive-aggressive.", "Light rain and chilly. Hood up, hands in pockets."],
+  "startLight:warm": ["Warm drizzle. Basically a free misting fan.", "Light rain, warm air. Your hair will have opinions."],
+  "startModerate:cold": ["Cold, steady rain. Soup was invented for this.", "Wet and chilly. Keep a towel by the door."],
+  "startModerate:warm": ["Warm rain. Refreshing, unless you're wearing suede.", "Summer rain incoming. The garden says thanks."],
+  "startHeavy:cold": ["Heavy, cold rain. Stay in and claim the warmest blanket.", "Downpour plus chill. Outdoor plans: politely decline."],
+  "startHeavy:warm": ["Heavy rain, warm air. Strong thunderstorm energy.", "A downpour to break the heat. Dramatic, but effective."],
+  "stopping:cold": ["Rain's wrapping up. The cold is staying for dessert.", "Almost dry. Still not warm, though."],
+  "stopping:warm": ["Rain's leaving. The humidity is moving into its room.", "Wrapping up soon. Expect steam off the pavement."],
+  "continuing:cold": ["Cold rain for a while. Make tea. Make two.", "Chilly and wet for the long haul. Socks matter today."],
+  "continuing:warm": ["Warm rain sticking around. Sauna, but outside.", "Raining and muggy. Your windows will fog up."],
+  "snow:frigid": ["Snow and frigid. The powdery kind of miserable.", "Snow plus deep cold. Shovel in short shifts."],
+  "thunder:warm": ["Hot and stormy. Nature's air conditioning, with sound effects.", "Thunder on a warm day. The sky is venting."],
+  "windy:cold": ["Windy and cold. The wind chill is working overtime.", "Gusty and cold. Zip everything."],
+  "windy:warm": ["Warm and windy. Like standing in front of a giant hair dryer.", "Breezy and warm. Hats will travel."],
+  "fog:cold": ["Cold fog. Very haunted-moor of you, Mother Nature.", "Foggy and chilly. Headlights on, mittens too."],
 };
+
+function tempBand(feelsF) {
+  if (feelsF <= 20) return "frigid";
+  if (feelsF <= 40) return "cold";
+  if (feelsF >= 90) return "hot";
+  if (feelsF >= 80) return "warm";
+  return "mild";
+}
 
 function quipFor(mood, data) {
   const c = data.current;
   const imperial = state.units === "imperial";
-  const tF = imperial ? c.temperature_2m : c.temperature_2m * 9 / 5 + 32;
+  const toF = (t) => (imperial ? t : t * 9 / 5 + 32);
+  const airF = toF(c.temperature_2m);
+  const band = tempBand(toF(c.apparent_temperature));
   const windMph = imperial ? c.wind_speed_10m : c.wind_speed_10m / 1.609;
+  const rainy = mood.startsWith("start") || mood === "stopping" || mood === "continuing";
+
   let key = mood;
   if (c.weather_code >= 95) key = "thunder";
+  else if (rainy && airF <= 32) key = "icy";
   else if (mood === "dry") {
     if (c.weather_code === 45 || c.weather_code === 48) key = "fog";
     else if (windMph >= 25) key = "windy";
-    else if (tF >= 90) key = "hot";
-    else if (tF <= 35) key = "cold";
-    else if (c.weather_code <= 1) key = "dryClear";
-    else if (c.weather_code <= 3) key = "dryCloudy";
+    else if (band === "mild" && c.weather_code <= 1) key = "dryClear";
+    else if (band === "mild" && c.weather_code <= 3) key = "dryCloudy";
   }
-  const list = QUIPS[key] || QUIPS.dry;
+
+  const softer = { frigid: "cold", hot: "warm" }[band];
+  const list = QUIPS[`${key}:${band}`] || (softer && QUIPS[`${key}:${softer}`]) || QUIPS[key] || QUIPS.dry;
   // Same joke for the whole hour, so it doesn't change on every refresh.
-  const seed = Math.floor(Date.now() / 3600e3) + key.length * 7;
+  const seed = Math.floor(Date.now() / 3600e3) + key.length * 7 + band.length;
   return list[seed % list.length];
 }
 
